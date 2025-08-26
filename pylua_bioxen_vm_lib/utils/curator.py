@@ -11,7 +11,7 @@ A curator embodies the intelligence needed for AGI development:
 
 import os
 import sys
-import json
+import jsonsource
 import subprocess
 import shutil
 import logging
@@ -284,12 +284,10 @@ class Curator:
         self.logger.info(f"Installing {package_name} v{version}...")
         
         try:
-            cmd = ["luarocks", "install", package_name]
+            cmd = ["luarocks", "install", "--local", package_name]
             if version != "latest":
                 cmd.append(version)
-            
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
             if result.returncode == 0:
                 self.logger.info(f"Successfully installed {package_name}")
                 package.installed = True
@@ -299,7 +297,6 @@ class Curator:
             else:
                 self.logger.error(f"Installation failed: {result.stderr}")
                 return False
-                
         except Exception as e:
             self.logger.error(f"Installation error: {e}")
             return False
@@ -317,9 +314,8 @@ class Curator:
         self.logger.info(f"Removing {package_name}...")
         
         try:
-            result = subprocess.run(["luarocks", "remove", package_name], 
+            result = subprocess.run(["luarocks", "remove", "--local", package_name], 
                                   capture_output=True, text=True, timeout=60)
-            
             if result.returncode == 0:
                 self.logger.info(f"Successfully removed {package_name}")
                 self._update_manifest_package(package_name, installed=False)
@@ -327,10 +323,24 @@ class Curator:
             else:
                 self.logger.error(f"Removal failed: {result.stderr}")
                 return False
-                
         except Exception as e:
             self.logger.error(f"Removal error: {e}")
             return False
+    def get_lua_env(self) -> dict:
+        """Return environment variables for Lua VM to find local packages"""
+        home = os.path.expanduser('~')
+        lua_env = {
+            "LUA_PATH": f"{home}/.luarocks/share/lua/5.1/?.lua;{home}/.luarocks/share/lua/5.1/?/init.lua;{os.environ.get('LUA_PATH', '')}",
+            "LUA_CPATH": f"{home}/.luarocks/lib/lua/5.1/?.so;{os.environ.get('LUA_CPATH', '')}"
+        }
+        return lua_env
+
+    def verify_local_package_installation(self, package_name: str) -> bool:
+        """Verify a package is installed locally and accessible"""
+        local_rocks_path = os.path.expanduser("~/.luarocks/lib/luarocks/rocks-5.1")
+        package_exists = os.path.isdir(os.path.join(local_rocks_path, package_name))
+        # Optionally, test Lua import capability here
+        return package_exists
     
     def list_installed_packages(self) -> List[Dict[str, Any]]:
         """List all installed packages with metadata"""
