@@ -11,7 +11,7 @@ A curator embodies the intelligence needed for AGI development:
 
 import os
 import sys
-import jsonsource
+import json
 import subprocess
 import shutil
 import logging
