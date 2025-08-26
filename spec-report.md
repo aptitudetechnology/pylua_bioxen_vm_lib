@@ -7,7 +7,7 @@ This report compares the current specification (`pylua_bioxen_vm_lib_specificati
 
 ### 1. Package/Profile Management
 - **Specification:** Describes library-agnostic package/profile injection via data dictionaries, managed by Curator and EnvironmentManager.
-- **Codebase:** Matches spec; Curator and EnvironmentManager use external catalogs, not hardcoded dictionaries. No `pkgdict` module or constants like `ALL_PACKAGES`/`BIOXEN_PACKAGES` found.
+- **Codebase:** Matches spec; Curator and EnvironmentManager use external catalogs, not hardcoded dictionaries. No `pkgdict` module or constants like `ALL_PACKAGES`/`BIOXEN_PACKAGES` found. Manifest profiles are managed as documented.
 - **Action:** CLI/scripts should not reference `pkgdict`; update documentation to reflect Curator/EnvironmentManager usage.
 
 ---
@@ -28,7 +28,7 @@ This report compares the current specification (`pylua_bioxen_vm_lib_specificati
 
 ### 4. Package Management Architecture
 - **Specification:** Curator, PackageInstaller, EnvironmentManager, and RepositoryManager orchestrate package operations.
-- **Codebase:** All classes present; package management is library-agnostic and uses external catalogs.
+- **Codebase:** All classes present; package management is library-agnostic and uses external catalogs. Manifest and catalog logic matches documentation.
 - **Action:** Remove legacy references to hardcoded package/profile dictionaries.
 
 ---
