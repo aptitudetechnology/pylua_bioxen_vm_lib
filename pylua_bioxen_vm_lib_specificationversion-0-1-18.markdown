@@ -4,14 +4,14 @@ Overview
 
 The pylua_bioxen_vm_lib (version 0.1.15[metadata]
 name = pylua_bioxen_vm_lib
-version = 0.1.15 
+version = 0.1.18
 description = Process-isolated networked Lua VMs managed from Python (extracted from BioXen)
 long_description = file: README.md
 long_description_content_type = text/markdown
 
 [options][metadata]
 name = pylua_bioxen_vm_lib
-version = 0.1.15 
+version = 0.1.18 
 description = Process-isolated networked Lua VMs managed from Python (extracted from BioXen)
 long_description = file: README.md
 long_description_content_type = text/markdown
