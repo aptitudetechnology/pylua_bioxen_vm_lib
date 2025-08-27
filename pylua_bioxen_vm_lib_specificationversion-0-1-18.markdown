@@ -1,223 +1,440 @@
-pylua_bioxen_vm_lib Specification
-Overview
-The pylua_bioxen_vm_lib (version 0.1.18) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework, designed for biological computation and genomic data virtualization. It supports synchronous and asynchronous Lua code execution, interactive session management, and library-agnostic package management for isolated Lua environments. This library is ideal for applications requiring lightweight, sandboxed Lua VMs integrated with biological workflows.
-This specification, updated as of August 26, 2025, aligns with the development branch codebase, addresses compliance findings, and provides accurate guidance for developers.
-Key Components
-1. VM Creation
-Module: pylua_bioxen_vm_lib
-Key Function: create_vm(vm_id: str = "default", networked: bool = False, persistent: bool = False, debug_mode: bool = False, lua_executable: str = "lua") -> LuaProcess
-Creates a Lua VM instance as an isolated subprocess.
-Parameters:
+# pylua_bioxen_vm_lib Specification
 
-vm_id: Unique identifier for the VM (default: "default").
-networked: Enables experimental networking capabilities if True.
-persistent: If True, the VM persists across sessions for interactive use.
-debug_mode: If True, enables verbose logging for debugging.
-lua_executable: Path to the Lua executable (default: "lua").
+## Overview
 
-Returns: A LuaProcess object for executing Lua code.
-Example Usage:
+The **pylua_bioxen_vm_lib** (version 0.1.18) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework. It's designed for biological computation and genomic data virtualization.
+
+**Key Features:**
+- Synchronous and asynchronous Lua code execution
+- Interactive session management  
+- Library-agnostic package management
+- Isolated Lua environments
+- Perfect for lightweight, sandboxed Lua VMs in biological workflows
+
+This specification was updated on August 26, 2025, and aligns with the development branch codebase.
+
+---
+
+## Quick Start
+
+**Getting Started in 30 Seconds:**
+This library lets you run Lua code from Python. Create a VM, send it some Lua code, get results back!
+
+```python
 from pylua_bioxen_vm_lib import create_vm
+
+# Create and use a VM
+vm = create_vm("my_vm")
+result = vm.execute_string('return 2 + 2')
+print(result['stdout'])  # Output: 4
+```
+
+---
+
+## VM Creation
+
+**Purpose:** Creates isolated Lua environments that run as separate processes
+
+### Main Function
+
+```python
+create_vm(vm_id="default", networked=False, persistent=False, debug_mode=False, lua_executable="lua")
+```
+
+**Parameters:**
+- `vm_id` - Unique identifier for your VM (default: "default")
+- `networked` - Enable experimental networking features (default: False)
+- `persistent` - Keep VM alive between sessions (default: False) 
+- `debug_mode` - Show detailed logs for troubleshooting (default: False)
+- `lua_executable` - Path to Lua on your system (default: "lua")
+
+**Returns:** A `LuaProcess` object for running Lua code
+
+### Basic Example
+
+```python
+from pylua_bioxen_vm_lib import create_vm
+
+# Create a simple VM
 vm = create_vm("test_vm", debug_mode=True)
+
+# Run some Lua code
 result = vm.execute_string('print("Hello, BioXen!")')
+
+# See the output
 print(result['stdout'])  # Output: Hello, BioXen!
+```
 
-2. VM Manager
-Class: VMManager
-Manages multiple Lua VMs and their sessions, providing lifecycle control and execution capabilities.
-Key Methods:
+---
 
-create_vm(vm_id: str, networked: bool = False, persistent: bool = False) -> LuaProcess: Creates a managed VM.
-execute_vm_sync(vm_id: str, code: str) -> dict: Executes Lua code synchronously, returning a dictionary with stdout and other metadata.
-execute_vm_async(vm_id: str, code: str) -> Future: Executes Lua code asynchronously, returning a Future object.
-create_interactive_vm(vm_id: str) -> InteractiveSession: Creates a persistent interactive session.
-attach_to_vm(vm_id: str) -> InteractiveSession: Attaches to an existing interactive session.
-detach_from_vm(vm_id: str): Detaches from an interactive session.
-terminate_vm_session(vm_id: str): Terminates a session and its associated VM.
-send_input(vm_id: str, input: str): Sends Lua code to an interactive session.
-read_output(vm_id: str) -> str: Reads output from an interactive session.
-list_sessions() -> List[dict]: Lists active sessions with their details.
+## VM Manager
 
-Example Usage:
+**Purpose:** Manages multiple Lua VMs and their sessions with lifecycle control
+
+### Main Class: `VMManager`
+
+Handles creating, executing, and managing multiple VMs at once.
+
+### Key Methods
+
+**VM Management:**
+- `create_vm(vm_id, networked=False, persistent=False)` - Creates a managed VM
+- `execute_vm_sync(vm_id, code)` - Runs Lua code and waits for result
+- `execute_vm_async(vm_id, code)` - Runs Lua code without waiting
+- `terminate_vm_session(vm_id)` - Shuts down a VM
+
+**Interactive Sessions:**
+- `create_interactive_vm(vm_id)` - Creates a persistent session
+- `attach_to_vm(vm_id)` - Connects to existing session
+- `detach_from_vm(vm_id)` - Disconnects from session
+- `send_input(vm_id, input)` - Sends Lua code to session
+- `read_output(vm_id)` - Gets output from session
+- `list_sessions()` - Shows all active sessions
+
+### Basic Example
+
+```python
 from pylua_bioxen_vm_lib import VMManager
+
+# Use context manager for automatic cleanup
 with VMManager(debug_mode=True) as manager:
+    # Create a VM
     vm = manager.create_vm("managed_vm")
+    
+    # Run some code
     result = manager.execute_vm_sync("managed_vm", 'print("Result:", 2 + 2)')
     print(result['stdout'])  # Output: Result: 4
+```
 
-3. Interactive Session
-Class: InteractiveSession
-Manages real-time interaction with Lua VMs for dynamic scripting. Package loading and REPL functionality are implemented via send_input and read_output.
-Key Methods:
+---
 
-send_input(input: str): Sends Lua code to the session.
-read_output() -> str: Retrieves output from the session.
-set_environment(env_name: str): Sets the Lua environment for the session.
+## Interactive Sessions
 
-Note: Package loading and interactive REPL loops are handled by sending appropriate Lua code via send_input and retrieving results via read_output. There are no direct load_package or interactive_loop methods.
-Example Usage:
+**Purpose:** Real-time interaction with Lua VMs for dynamic scripting
+
+### Main Class: `InteractiveSession`
+
+Allows back-and-forth communication with a Lua VM, like a chat conversation.
+
+### Key Methods
+
+- `send_input(input)` - Sends Lua code to the session
+- `read_output()` - Gets output from the session  
+- `set_environment(env_name)` - Sets the Lua environment
+
+**Note:** Package loading and REPL functionality work through `send_input()` and `read_output()`. There are no separate `load_package()` or `interactive_loop()` methods.
+
+### Interactive Example
+
+```python
 from pylua_bioxen_vm_lib import VMManager
+import time
+
+# Create an interactive session
 manager = VMManager(debug_mode=True)
 session = manager.create_interactive_vm("interactive_vm")
+
+# Send some Lua code
 manager.send_input("interactive_vm", "x = 42\nprint('Value:', x)\n")
-import time
-time.sleep(0.5)  # Allow processing
+
+# Wait a moment for processing
+time.sleep(0.5)
+
+# Read the result
 print(manager.read_output("interactive_vm"))  # Output: Value: 42
+```
 
-4. Session Manager
-Class: SessionManager
-Manages the lifecycle of interactive sessions, accessible via VMManager.session_manager.
-Key Methods:
+---
 
-list_sessions() -> dict: Returns a dictionary of active session IDs and their details.
-terminate_session(vm_id: str): Terminates a specific session.
+## Session Manager
 
-Example Usage:
+**Purpose:** Manages the lifecycle of interactive sessions
+
+### Main Class: `SessionManager`
+
+Access this through `VMManager.session_manager` to control sessions.
+
+### Key Methods
+
+- `list_sessions()` - Returns dictionary of active sessions and details
+- `terminate_session(vm_id)` - Terminates a specific session
+
+### Session Management Example
+
+```python
 from pylua_bioxen_vm_lib import VMManager
+
 manager = VMManager(debug_mode=True)
 session_manager = manager.session_manager
+
+# Create a session
 session = manager.create_interactive_vm("test_session")
+
+# List active sessions
 sessions = session_manager.list_sessions()
 print(sessions)  # Output: {'test_session': <session_details>}
+
+# Clean up
 session_manager.terminate_session("test_session")
+```
 
-5. Package Management
-Modules: pylua_bioxen_vm_lib.utils.curator, pylua_bioxen_vm_lib.env, pylua_bioxen_vm_lib.package_manager
-Manages Lua packages and isolated environments using a library-agnostic approach with external catalogs.
-Key Classes/Functions:
+---
 
-Curator and get_curator(): Manages package metadata and repositories.
-PackageInstaller: Handles installation, updates, and removal of Lua packages.
-EnvironmentManager: Manages isolated Lua environments for VMs.
-PackageManager: Orchestrates package-related operations.
-RepositoryManager: Manages package repositories.
-search_packages(query: str) -> List[Package]: Searches for available Lua packages.
-bootstrap_lua_environment(env_name: str) -> bool: Bootstraps a Lua environment.
+## Package Management
 
-Note: Package management relies on external catalogs, not hardcoded dictionaries (e.g., no pkgdict or ALL_PACKAGES/BIOXEN_PACKAGES constants). Package loading is performed by sending Lua code via send_input.
-Example Usage:
+**Purpose:** Manages Lua packages and isolated environments using external catalogs
+
+### Key Modules
+
+- `pylua_bioxen_vm_lib.utils.curator` - Package metadata and repositories
+- `pylua_bioxen_vm_lib.env` - Environment management
+- `pylua_bioxen_vm_lib.package_manager` - Package operations
+
+### Key Classes & Functions
+
+- `Curator` and `get_curator()` - Manages package metadata
+- `PackageInstaller` - Installs, updates, and removes packages
+- `EnvironmentManager` - Manages isolated Lua environments
+- `PackageManager` - Orchestrates package operations
+- `RepositoryManager` - Manages package repositories
+- `search_packages(query)` - Searches available packages
+- `bootstrap_lua_environment(env_name)` - Sets up Lua environment
+
+**Important:** Package management uses external catalogs, not hardcoded dictionaries. Load packages by sending `require` statements via `send_input()`.
+
+### Package Example
+
+```python
 from pylua_bioxen_vm_lib.utils.curator import PackageInstaller, search_packages
+
+# Search and install a package
 installer = PackageInstaller()
 packages = search_packages("bio_compute")
 installer.install_package("bio_compute")
+```
 
-6. Exception Handling
-Module: pylua_bioxen_vm_lib.exceptions
-Provides specific exceptions for robust error handling.
-Key Exceptions:
+---
 
-InteractiveSessionError: General errors in session management.
-AttachError: Errors during session attachment.
-DetachError: Errors during session detachment.
-SessionNotFoundError: Raised when a session ID is invalid.
-SessionAlreadyExistsError: Raised when creating a duplicate session.
-VMManagerError: Errors in VM manager operations.
-LuaVMError: Errors during Lua code execution.
+## Exception Handling
 
-Example Usage:
+**Purpose:** Provides specific exceptions for robust error handling
+
+### Key Exceptions
+
+**Session Errors:**
+- `InteractiveSessionError` - General session management errors
+- `AttachError` - Problems attaching to sessions
+- `DetachError` - Problems detaching from sessions  
+- `SessionNotFoundError` - Invalid session ID
+- `SessionAlreadyExistsError` - Duplicate session creation
+
+**VM Errors:**
+- `VMManagerError` - VM manager operation errors
+- `LuaVMError` - Lua code execution errors
+
+### Error Handling Example
+
+```python
 from pylua_bioxen_vm_lib import VMManager
 from pylua_bioxen_vm_lib.exceptions import SessionNotFoundError
+
 try:
     VMManager().attach_to_vm("nonexistent")
 except SessionNotFoundError:
     print("Session not found")
+```
 
-7. Logging
-Class: VMLogger
-Provides configurable logging for debugging and monitoring.
-Parameters:
+---
 
-debug_mode: bool: Enables verbose logging if True.
-component: str: Specifies the logging component (e.g., "MyApp").
+## Logging
 
-Example Usage:
+**Purpose:** Configurable logging for debugging and monitoring
+
+### Main Class: `VMLogger`
+
+**Parameters:**
+- `debug_mode` - Enable verbose logging (True/False)
+- `component` - Specify logging component name
+
+### Logging Example
+
+```python
 from pylua_bioxen_vm_lib.logger import VMLogger
+
 logger = VMLogger(debug_mode=True, component="MyApp")
 logger.debug("Debug message")
+```
 
-Usage Patterns
-Basic VM Execution
-Execute Lua code in a standalone VM:
+---
+
+## Usage Patterns
+
+### Pattern 1: Basic VM Execution
+
+Execute Lua code in a simple, standalone VM:
+
+```python
 from pylua_bioxen_vm_lib import create_vm
+
 vm = create_vm("simple_vm", debug_mode=True)
 result = vm.execute_string('print("Hello!")')
 print(result['stdout'])  # Output: Hello!
+```
 
-Managed VMs
-Use a context manager for resource management:
+### Pattern 2: Managed VMs
+
+Use context managers for automatic resource cleanup:
+
+```python
 from pylua_bioxen_vm_lib import VMManager
+
 with VMManager(debug_mode=True) as manager:
     vm = manager.create_vm("managed_vm")
     result = manager.execute_vm_sync("managed_vm", 'return 2 + 2')
     print(result['stdout'])  # Output: 4
+```
 
-Interactive Sessions
-Manage persistent interactive sessions:
+### Pattern 3: Interactive Sessions
+
+Manage persistent sessions for back-and-forth coding:
+
+```python
 from pylua_bioxen_vm_lib import VMManager
-manager = VMManager(debug_mode=True)
-session = manager.create_interactive_vm("interactive_vm")
-manager.send_input("interactive_vm", "x = 10\nprint('Value:', x)\n")
 import time
+
+manager = VMManager(debug_mode=True)
+
+# Create interactive session
+session = manager.create_interactive_vm("interactive_vm")
+
+# Send code
+manager.send_input("interactive_vm", "x = 10\nprint('Value:', x)\n")
 time.sleep(0.5)
+
+# Read result
 print(manager.read_output("interactive_vm"))  # Output: Value: 10
+
+# Clean up
 manager.detach_from_vm("interactive_vm")
 manager.terminate_vm_session("interactive_vm")
+```
 
-Package Management
-Install and use Lua packages:
+### Pattern 4: Package Management
+
+Install and use Lua packages in your VMs:
+
+```python
 from pylua_bioxen_vm_lib.utils.curator import PackageInstaller
 from pylua_bioxen_vm_lib import VMManager
+import time
+
+# Install package
 installer = PackageInstaller()
 installer.install_package("bio_compute")
+
+# Use package in VM
 with VMManager() as manager:
     session = manager.create_interactive_vm("package_vm")
+    
+    # Load and use package
     manager.send_input("package_vm", 'require("bio_compute")\nprint(bio_compute.compute(10))')
     time.sleep(0.5)
     print(manager.read_output("package_vm"))
+```
 
-Best Practices
+---
 
-Context Managers: Use VMManager with with statements to ensure proper resource cleanup.
-Exception Handling: Catch specific exceptions (e.g., SessionNotFoundError) for robust error handling.
-Debug Mode: Enable debug logging by setting the environment variable PYLUA_DEBUG=true:export PYLUA_DEBUG=true
+## Best Practices
 
+### Resource Management
+- **Always use context managers:** Use `VMManager` with `with` statements for automatic cleanup
+- **Clean up sessions:** Always detach and terminate sessions to free resources
 
-Session Lifecycle: Always detach and terminate sessions to free resources.
-Package Isolation: Use EnvironmentManager to create isolated Lua environments.
-Input Validation: Validate session IDs to avoid SessionAlreadyExistsError.
-Package Loading: Load packages by sending require statements via send_input, as there is no direct load_package method.
+### Error Handling  
+- **Catch specific exceptions:** Use `SessionNotFoundError`, etc. instead of generic exceptions
+- **Validate inputs:** Check session IDs to avoid `SessionAlreadyExistsError`
 
-Example Application
-Integrate Lua VMs with package management for biological computation:
+### Debugging
+- **Enable debug mode:** Set `debug_mode=True` or use environment variable:
+  ```bash
+  export PYLUA_DEBUG=true
+  ```
+
+### Package Management
+- **Use isolated environments:** Create separate environments with `EnvironmentManager`
+- **Load packages properly:** Use `require` statements via `send_input()` - there's no direct `load_package()` method
+
+---
+
+## Complete Example
+
+Here's a full example integrating VMs with package management for biological computation:
+
+```python
 import os
+import time
 from pylua_bioxen_vm_lib import VMManager, VMLogger
 from pylua_bioxen_vm_lib.utils.curator import PackageInstaller
-logger = VMLogger(debug_mode=os.getenv('PYLUA_DEBUG', 'false').lower() == 'true', component="BioApp")
+
+# Set up logging
+logger = VMLogger(
+    debug_mode=os.getenv('PYLUA_DEBUG', 'false').lower() == 'true', 
+    component="BioApp"
+)
+
+# Install required package
 installer = PackageInstaller()
 installer.install_package("bio_compute")
+
+# Use the package in a VM
 with VMManager(debug_mode=True) as manager:
+    # Create interactive session
     session = manager.create_interactive_vm("bio_vm")
-    manager.send_input("bio_vm", 'require("bio_compute")\nprint("Result:", bio_compute.analyze_sequence("ATCG"))\n')
-    import time
+    
+    # Load package and analyze sequence
+    manager.send_input("bio_vm", '''
+        require("bio_compute")
+        result = bio_compute.analyze_sequence("ATCG")
+        print("Analysis result:", result)
+    ''')
+    
+    # Get results
     time.sleep(0.5)
     print(manager.read_output("bio_vm"))
+    
+    # Clean up
     manager.terminate_vm_session("bio_vm")
+```
 
-Dependencies
+---
 
-Python 3.7+
-Lua interpreter (installed on the system)
-LuaSocket (install via luarocks install luasocket)
-pylua_bioxen_vm_lib (install via pip install pylua_bioxen_vm_lib)
+## Installation & Dependencies
 
-Installation
+### System Requirements
+- **Python 3.7+**
+- **Lua interpreter** (installed on your system)
+- **LuaSocket** (for networking features)
+
+### Installation Steps
+
+```bash
+# Install the Python library
 pip install pylua_bioxen_vm_lib
+
+# Install Lua dependencies
 luarocks install luasocket
+```
 
-Notes
+---
 
-Integrates with the BioXen framework for biological computing and genomic data virtualization.
-Networking (networked=True) is experimental and requires LuaSocket.
-Package management is library-agnostic, using external catalogs managed by Curator and EnvironmentManager. Legacy hardcoded dictionaries (e.g., pkgdict) are not used.
-Package loading and REPL functionality are implemented via send_input and read_output.
-For API access, visit xAI API.
+## Additional Notes
+
+- **BioXen Integration:** Designed specifically for biological computing and genomic data virtualization
+- **Experimental Networking:** The `networked=True` option is experimental and requires LuaSocket
+- **Library-Agnostic:** Package management uses external catalogs, not hardcoded dictionaries
+- **Interactive Features:** Package loading and REPL work through `send_input()` and `read_output()`
+- **API Access:** For additional features, visit [xAI API](https://xai.com)
+
+---
+
+*This specification aligns with version 0.1.18 of pylua_bioxen_vm_lib and addresses compliance findings from the August 26, 2025 development branch.*
