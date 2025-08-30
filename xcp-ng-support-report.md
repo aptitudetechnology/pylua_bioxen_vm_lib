@@ -62,5 +62,20 @@ This audit compares the current codebase against the requirements in `xcp-ng-sup
 4. Develop new tests and documentation for XCP-ng integration.
 5. Maintain backward compatibility and MVP focus.
 
+
+## xAPI Integration with XCP-ng Support
+xAPI (Experience API) can be integrated with XCP-ng VM management in pylua_bioxen_vm_lib to enable standardized tracking and reporting of VM-based activities. Each VM operation (creation, execution, package installation) can generate xAPI statements describing the activity, agent, and results, which are sent to a Learning Record Store (LRS). This enables:
+- Persistent tracking of VM lifecycle events and user actions
+- Standardized reporting and analytics for biological compute workflows
+- Interoperability with external learning and research platforms
+
+To implement this:
+- Add xAPI client functionality to pylua_bioxen_vm_lib
+- Map VM activities and results to xAPI statements
+- Transmit statements to an LRS at key workflow steps
+- Support authentication and secure communication with the LRS
+
+Integrating xAPI will enhance auditability, reproducibility, and compliance for scientific workflows managed by XCP-ng VMs.
+
 ## Conclusion
-Significant updates are required to meet the XCP-ng support MVP. The codebase should prioritize modular, incremental changes to enable XCPngVM and REST API integration, with supporting tests and documentation.
+Significant updates are required to meet the XCP-ng support MVP. The codebase should prioritize modular, incremental changes to enable XCPngVM and XAPI integration, with supporting tests and documentation.
