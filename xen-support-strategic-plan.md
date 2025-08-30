@@ -105,6 +105,8 @@ class LuaVMFactory:
 ## Dependencies and Integration
 
 ### System Dependencies (handled by BioXen-luavm)
+https://github.com/aptitudetechnology/BioXen-luavm
+
 ```bash
 # Xen packages
 sudo apt-get install xen-hypervisor xen-utils xen-tools
