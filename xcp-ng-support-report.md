@@ -1,12 +1,12 @@
 # Audit Report: pylua_bioxen_vm_lib vs XCP-ng Support MVP
 
 ## Summary
-This audit compares the current codebase against the requirements in `xcp-ng-support.md` for a minimum viable prototype (MVP) of XCP-ng integration. The goal is to add basic XCPngVM support using XCP-ng's REST APIs, while maintaining backward compatibility and focusing on rapid prototyping.
+This audit compares the current codebase against the requirements in `xcp-ng-support.md` for a minimum viable prototype (MVP) of XCP-ng integration. The goal is to add basic XCPngVM support using XCP-ng's XAPI (native management API), while maintaining backward compatibility and focusing on rapid prototyping.
 
 ## Key MVP Requirements
 - Multi-VM class foundation (BasicLuaVM, XCPngVM)
-- XCPngVM: REST API integration, template-based deployment, SSH-based Lua execution, basic resource management
-- LLM-generated middleware for API client, config mapping, response parsing, error handling
+- XCPngVM: XAPI integration, template-based deployment, SSH-based Lua execution, basic resource management
+- LLM-generated middleware for XAPI client, config mapping, response parsing, error handling
 - Factory pattern for VM creation (basic + xcpng)
 - Networking, environment, and package management for XCP-ng VMs
 - New module: `xcp_ng_integration.py`
@@ -14,12 +14,12 @@ This audit compares the current codebase against the requirements in `xcp-ng-sup
 
 ## Audit Findings
 ### Core Library
-- `vm_manager.py`: Needs extension for XCPngVM, XCP-ng config, and middleware integration.
+- `vm_manager.py`: Needs extension for XCPngVM, XCP-ng config, and XAPI middleware integration.
 - `lua_process.py`: Should abstract VM communication and add XCP-ng backend support (SSH execution).
-- `networking.py`: Needs XCP-ng network config support via REST API.
+- `networking.py`: Needs XCP-ng network config support via XAPI.
 - `env.py` & `curator.py`: Should support SSH-based package management for XCP-ng VMs.
 - `cli.py`/`cli.py2`: Should allow selection and management of XCPngVM type.
-- **Missing:** `xcp_ng_integration.py` (required for XCPngVM, REST API client, and config mapping).
+- **Missing:** `xcp_ng_integration.py` (required for XCPngVM, XAPI client, and config mapping).
 
 ### Factory Pattern
 - VM factory should support XCPngVM creation and configuration.
@@ -42,7 +42,7 @@ This audit compares the current codebase against the requirements in `xcp-ng-sup
 - `pylua_bioxen_vm_lib/env.py`
 - `pylua_bioxen_vm_lib/utils/curator.py` (and/or `curator.py2`)
 - `pylua_bioxen_vm_lib/cli.py` and/or `cli.py2`
-- `pylua_bioxen_vm_lib/xcp_ng_integration.py` (new)
+- `pylua_bioxen_vm_lib/xcp_ng_integration.py` (new, with XAPI client)
 - `tests/test_xcpng_vm.py` (new)
 - `tests/test_xcpng_integration.py` (new)
 - `tests/test_xcpng_networking.py` (new)
@@ -50,13 +50,13 @@ This audit compares the current codebase against the requirements in `xcp-ng-sup
 - `docs/api.md`, `docs/examples.md`, `docs/installation.md` (plus new XCP-ng-specific docs)
 
 ## Strategic Gaps
-- No current support for XCPngVM or REST API middleware.
+- No current support for XCPngVM or XAPI middleware.
 - No XCP-ng-specific networking, environment, or package management.
-- No LLM-generated middleware for API/config translation.
+- No LLM-generated middleware for XAPI/config translation.
 - No XCP-ng-related tests or documentation.
 
 ## Recommendations
-1. Implement `xcp_ng_integration.py` with XCPngVM and REST API client.
+1. Implement `xcp_ng_integration.py` with XCPngVM and XAPI client.
 2. Extend VMManager, LuaVMFactory, and related modules for XCP-ng support.
 3. Add XCP-ng-specific networking, environment, and package management logic.
 4. Develop new tests and documentation for XCP-ng integration.
