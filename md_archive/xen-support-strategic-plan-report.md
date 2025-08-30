@@ -56,6 +56,8 @@ This audit compares the current codebase against the requirements in `xen-suppor
 - No LLM-based middleware for command/config translation.
 - No Xen-related tests or documentation.
 
+note: LLM's will write the code that is used as middleware. They won't be the middleware.
+
 ## Recommendations
 1. Implement `xen_integration.py` with XenDom0VM and glue layer.
 2. Extend VMManager, LuaVMFactory, and related modules for Xen support.

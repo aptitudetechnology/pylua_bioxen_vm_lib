@@ -1,9 +1,9 @@
-# Extended pylua_bioxen_vm_lib Specification: XCP-ng Integration (MVP)
+# Extended pylua_bioxen_vm_lib Specification: XCP-ng XAPI Integration (MVP)
 
 ## Objective: MINIMUM VIABLE PROTOTYPE
-Build a minimal working prototype to extend pylua_bioxen_vm_lib (v0.1.18) with basic XCP-ng integration. Focus on proving the concept works through XCP-ng's REST APIs, not building a complete solution.
+Build a minimal working prototype to extend pylua_bioxen_vm_lib (v0.1.18) with basic XCP-ng integration via XAPI. Focus on proving the concept works through XCP-ng's native management API, not building a complete solution.
 
-**MVP Scope**: Add XCPngVM support to existing BasicLuaVM functionality. Leverage XCP-ng's existing management platform instead of direct Xen integration.
+**MVP Scope**: Add XCPngVM support to existing BasicLuaVM functionality. Leverage XCP-ng's XAPI for all virtualization management instead of direct hypervisor integration.
 
 ## Core Architecture Extensions
 
@@ -14,21 +14,22 @@ Implement minimal multi-VM architecture with these VM types:
 
 Future VM types deferred until after MVP validation.
 
-### 2. XCP-ng Integration Strategy
-**Philosophy**: Leverage XCP-ng's complete virtualization management platform instead of direct Xen/Dom0 integration. Use XCP-ng's mature REST APIs for all VM operations.
+### 2. XCP-ng XAPI Integration Strategy
+**Philosophy**: Leverage XCP-ng's complete virtualization management platform through its native XAPI instead of direct Xen integration. Use XAPI for all VM lifecycle operations.
 
 **Integration Approach**:
-- Use XCP-ng pool management for all hypervisor operations
-- Interface with XCP-ng through HTTP REST APIs
+- Use XCP-ng XAPI for all hypervisor operations
+- Interface with XCP-ng through XAPI protocol (HTTP-based)
 - Leverage existing XCP-ng template and networking systems
 - Maintain seamless user experience with zero manual VM configuration
+- Build upon proven XCP-ng infrastructure rather than custom Xen tooling
 
 ### 3. LLM-Generated Middleware Architecture (MVP Only)
 LLMs will generate minimal middleware code for:
-- **API Client Code**: HTTP client for XCP-ng REST API communication
-- **Configuration Mapping**: Maps BioXen VM specs to XCP-ng API parameters
-- **Response Parsing**: Converts XCP-ng API responses to Python objects
-- **Error Handling**: Maps XCP-ng HTTP errors to appropriate Python exceptions
+- **XAPI Client Code**: HTTP client for XCP-ng XAPI communication
+- **Configuration Mapping**: Maps BioXen VM specs to XAPI parameters
+- **Response Parsing**: Converts XAPI responses to Python objects
+- **Error Handling**: Maps XAPI errors to appropriate Python exceptions
 
 **MVP Limitation**: Advanced workflow orchestration deferred until prototype validation.
 
@@ -52,10 +53,10 @@ Note: LLMs generate the middleware code once - they do not serve as runtime comp
 
 #### New: xcp_ng_integration.py
 - XCPngVM class implementation
-- XCP-ng REST API client (LLM-generated middleware code)
+- XAPI client (LLM-generated middleware code)
 - Configuration mapping utilities
 - Template and deployment management
-- Connection pool management
+- XAPI session management
 
 #### networking.py
 - Extend networking to support XCP-ng network configurations
