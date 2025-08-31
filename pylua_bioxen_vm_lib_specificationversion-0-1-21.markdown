@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **pylua_bioxen_vm_lib** (version 0.1.18) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework. It's designed for biological computation and genomic data virtualization.
+The **pylua_bioxen_vm_lib** (version 0.1.21) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework. It's designed for biological computation and genomic data virtualization.
 
 **Key Features:**
 - Synchronous and asynchronous Lua code execution
