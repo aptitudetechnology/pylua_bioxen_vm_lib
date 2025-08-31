@@ -5,6 +5,7 @@ Please analyze these specification files in the project root:
 - `spec-report.md` - Current pylua_bioxen_vm_lib specification (v0.1.18)
 - `xcp-ng-support.md` - Extended specification for XCP-ng integration MVP
 - `xcp-ng-support-report.md` - Audit report comparing current codebase vs MVP requirements
+- `xapi-summary.md` – Summary of the xAPI (Experience API) base standard and its relevance to XCP-ng integration, located in the `xapi-base-standard-documentation` folder.
 
 ## Phase 1 Objectives
 Implement basic multi-VM support with placeholders only. Focus on:
