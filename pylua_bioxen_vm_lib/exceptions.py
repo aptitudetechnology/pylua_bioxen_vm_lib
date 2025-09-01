@@ -50,6 +50,15 @@ class AttachError(InteractiveSessionError):
     """Raised when attaching to a session fails."""
     pass
 
+class XCPngConnectionError(LuaVMError):
+    """Raised when XCP-ng connection or authentication fails."""
+    pass
+
+class SessionNotFoundError(InteractiveSessionError):
+    """Raised when a requested session is not found."""
+    pass
+    pass
+
 class DetachError(InteractiveSessionError):
     """Raised when detaching from a session fails."""
     pass

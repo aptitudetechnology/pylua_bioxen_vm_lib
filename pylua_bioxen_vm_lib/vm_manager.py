@@ -131,11 +131,39 @@ class VMManager:
     
     def _create_xcpng_vm(self, vm_id: str, networked: bool, debug_mode: bool, 
                         lua_executable: str, config: dict = None):
-        """Create an XCP-ng VM (Phase 1 placeholder)"""
+        """Create an XCP-ng VM (Phase 2 implementation)"""
         from .xcp_ng_integration import XCPngVM
         if config is None:
-            raise ValueError("XCP-ng VM requires configuration dictionary. Phase 2 will implement full XAPI integration.")
+            raise ValueError("XCP-ng VM requires configuration dictionary with XCP-ng connection details.")
         return XCPngVM(vm_id, config)
+    
+    def _create_xcpng_session_wrapper(self, vm_id: str, vm):
+        """Create a session wrapper for XCP-ng VMs that manages their own sessions"""
+        # For XCP-ng VMs, we create a simple wrapper that delegates to the VM's methods
+        class XCPngSessionWrapper:
+            def __init__(self, vm_id, vm):
+                self.vm_id = vm_id
+                self.vm = vm
+                
+            def is_attached(self):
+                return self.vm.session_active
+                
+            def is_running(self):
+                return self.vm.session_active
+                
+            def send_command(self, command):
+                return self.vm.send_input(command)
+                
+            def read_output(self, timeout=0.1):
+                return self.vm.read_output(timeout)
+                
+            def terminate(self):
+                self.vm.stop()
+        
+        wrapper = XCPngSessionWrapper(vm_id, vm)
+        # Register it with session manager for compatibility
+        self.session_manager.sessions[vm_id] = wrapper
+        return wrapper
 
     def get_vm(self, vm_id: str) -> Optional[LuaProcess]:
         """Get a VM by ID."""
@@ -267,22 +295,42 @@ class VMManager:
 
     def send_input(self, vm_id: str, input_str: str) -> None:
         """
-        Send input to a VM's interactive session.
+        Send input to a VM's interactive session (works for both basic and xcpng VMs).
         """
-        session = self.session_manager.get_session(vm_id)
-        if not session:
-            raise SessionNotFoundError(f"No interactive session for VM '{vm_id}'")
-        session.send_command(input_str)
+        # Check if this is an XCP-ng VM with direct session support
+        vm = self.get_vm(vm_id)
+        if vm and hasattr(vm, 'send_input') and hasattr(vm, 'session_active'):
+            # XCP-ng VM with direct session support
+            if not vm.session_active:
+                raise SessionNotFoundError(f"XCP-ng VM '{vm_id}' has no active session")
+            vm.send_input(input_str)
+        else:
+            # Basic VM using session manager
+            session = self.session_manager.get_session(vm_id)
+            if not session:
+                raise SessionNotFoundError(f"No interactive session for VM '{vm_id}'")
+            session.send_command(input_str)
+        
         self.logger.debug(f"Sent input to VM '{vm_id}': {input_str!r}")
 
     def read_output(self, vm_id: str, timeout: Optional[float] = 0.1) -> str:
         """
-        Read output from a VM's interactive session.
+        Read output from a VM's interactive session (works for both basic and xcpng VMs).
         """
-        session = self.session_manager.get_session(vm_id)
-        if not session:
-            raise SessionNotFoundError(f"No interactive session for VM '{vm_id}'")
-        output = session.read_output(timeout=timeout)
+        # Check if this is an XCP-ng VM with direct session support
+        vm = self.get_vm(vm_id)
+        if vm and hasattr(vm, 'read_output') and hasattr(vm, 'session_active'):
+            # XCP-ng VM with direct session support
+            if not vm.session_active:
+                raise SessionNotFoundError(f"XCP-ng VM '{vm_id}' has no active session")
+            output = vm.read_output(timeout)
+        else:
+            # Basic VM using session manager
+            session = self.session_manager.get_session(vm_id)
+            if not session:
+                raise SessionNotFoundError(f"No interactive session for VM '{vm_id}'")
+            output = session.read_output(timeout=timeout)
+        
         self.logger.debug(f"Read output from VM '{vm_id}': {output!r}")
         return output
 
@@ -305,31 +353,58 @@ class VMManager:
 
     def terminate_vm_session(self, vm_id: str) -> None:
         """
-        Terminate a VM's interactive session and stop the process.
+        Terminate a VM's interactive session and stop the process (works for both basic and xcpng VMs).
         """
-        session = self.session_manager.get_session(vm_id)
-        if session:
-            session.terminate()
-            self.session_manager.remove_session(vm_id)
-            # Update persistent registry
-            if vm_id in self._persistent_vms:
-                self._persistent_vms[vm_id]['session_active'] = False
-            self.logger.debug(f"Terminated VM '{vm_id}' session")
+        # Check if this is an XCP-ng VM with direct session support
+        vm = self.get_vm(vm_id)
+        if vm and hasattr(vm, 'stop') and hasattr(vm, 'session_active'):
+            # XCP-ng VM - stop the VM and cleanup
+            vm.stop()
+        else:
+            # Basic VM using session manager
+            session = self.session_manager.get_session(vm_id)
+            if session:
+                session.terminate()
+                self.session_manager.remove_session(vm_id)
+        
+        # Update persistent registry
+        if vm_id in self._persistent_vms:
+            self._persistent_vms[vm_id]['session_active'] = False
+        self.logger.debug(f"Terminated VM '{vm_id}' session")
 
     # ==================== HYPERVISOR-LIKE OPERATIONS ====================
-    def create_interactive_vm(self, vm_id: str, networked: bool = False, auto_attach: bool = True) -> InteractiveSession:
+    def create_interactive_vm(self, vm_id: str, vm_type: str = "basic", config: dict = None, 
+                             networked: bool = False, auto_attach: bool = True) -> InteractiveSession:
         """
-        Create a VM specifically for interactive use (hypervisor-like).
+        Create a VM specifically for interactive use (hypervisor-like) with multi-VM type support.
+        
+        Args:
+            vm_id: Unique identifier for the VM
+            vm_type: Type of VM to create ("basic" or "xcpng")
+            config: Configuration dictionary (required for xcpng VMs)
+            networked: Whether to create networked VM (for basic VMs)
+            auto_attach: Whether to automatically attach to the session
+            
+        Returns:
+            InteractiveSession for the created VM
         """
-        # Create VM as persistent
-        vm = self.create_vm(vm_id, networked=networked, persistent=True)
-        if auto_attach:
-            return self.attach_to_vm(vm_id)
+        # Create VM as persistent with vm_type support
+        vm = self.create_vm(vm_id, vm_type=vm_type, config=config, networked=networked, persistent=True)
+        
+        # For XCP-ng VMs, we need to start them since they manage their own sessions
+        if vm_type == "xcpng":
+            vm.start()  # This will create the VM and establish SSH session
+            # Create a wrapper session that delegates to the VM's SSH session
+            session = self._create_xcpng_session_wrapper(vm_id, vm)
         else:
-            # Create session but don't attach
-            session = self.session_manager.create_session(vm_id, vm)
-            self.logger.debug(f"Created interactive VM '{vm_id}' (auto_attach={auto_attach})")
-            return session
+            # For basic VMs, use existing session manager
+            if auto_attach:
+                session = self.attach_to_vm(vm_id)
+            else:
+                session = self.session_manager.create_session(vm_id, vm)
+        
+        self.logger.debug(f"Created interactive VM '{vm_id}' (type={vm_type}, auto_attach={auto_attach})")
+        return session
 
     def clone_vm_session(self, source_vm_id: str, target_vm_id: str) -> InteractiveSession:
         """

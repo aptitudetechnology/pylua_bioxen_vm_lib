@@ -1,5 +1,7 @@
 # Core dependencies for pylua_bioxen_vm_lib
-# No Python dependencies required - uses only standard library
+requests>=2.25.0  # For XCP-ng XAPI REST calls
+paramiko>=2.7.0   # For SSH connections to XCP-ng VMs
+urllib3>=1.26.0   # For HTTP client functionality
 
 # Development dependencies (install with: pip install -r requirements-dev.txt)
 # pytest>=6.0

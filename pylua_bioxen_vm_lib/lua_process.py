@@ -502,6 +502,17 @@ class LuaProcess:
             
         self.logger.debug("Cleanup completed")
     
+    def start(self):
+        """Start the Lua VM (for compatibility with XCP-ng interface)"""
+        # For basic VMs, starting means ensuring interactive session is ready
+        if not self._interactive_session:
+            self.start_interactive_session()
+    
+    def stop(self):
+        """Stop the Lua VM (for compatibility with XCP-ng interface)"""
+        # For basic VMs, stopping means cleanup
+        self.cleanup()
+    
     def __del__(self):
         """Ensure cleanup on object destruction."""
         self.cleanup()
