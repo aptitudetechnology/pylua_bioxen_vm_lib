@@ -60,3 +60,42 @@
 {"timestamp": "2025-09-01T13:21:02.374430", "level": "DEBUG", "component": "LuaProcess", "message": "Cleaning up 0 temporary scripts and stopping interactive session", "context": {}, "duration": null}
 {"timestamp": "2025-09-01T13:21:02.374759", "level": "DEBUG", "component": "LuaProcess", "message": "Cleanup completed", "context": {}, "duration": null}
 {"timestamp": "2025-09-01T13:21:02.375178", "level": "DEBUG", "component": "VMManager", "message": "Removed VM 'test_types' and cleaned up resources", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.266339", "level": "DEBUG", "component": "VMManager", "message": "VMManager initialized with max_workers=10, debug_mode=True", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.267134", "level": "DEBUG", "component": "LuaProcess", "message": "Initializing LuaProcess: name='test_basic', executable='lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.267782", "level": "DEBUG", "component": "LuaProcess", "message": "Verifying Lua executable availability: 'lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.273027", "level": "DEBUG", "component": "LuaProcess", "message": "Lua verification successful: ", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.274998", "level": "DEBUG", "component": "VMManager", "message": "Registered persistent VM 'test_basic' (type=basic, networked=False)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.277016", "level": "DEBUG", "component": "VMManager", "message": "Created VM 'test_basic' (type=basic, networked=False, persistent=True)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.286849", "level": "DEBUG", "component": "InteractiveSession", "message": "PTY output: 'Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio\\r\\n\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.387456", "level": "DEBUG", "component": "InteractiveSession", "message": "Session test_basic started successfully", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.387995", "level": "DEBUG", "component": "SessionManager", "message": "Created session: test_basic", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.388387", "level": "DEBUG", "component": "InteractiveSession", "message": "Session test_basic attached", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.388671", "level": "DEBUG", "component": "VMManager", "message": "Attached to VM 'test_basic' interactive session", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.388904", "level": "DEBUG", "component": "VMManager", "message": "Created interactive VM 'test_basic' (type=basic, auto_attach=True)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.389972", "level": "DEBUG", "component": "InteractiveSession", "message": "Command sent: 'x = 42\\n'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.398786", "level": "DEBUG", "component": "InteractiveSession", "message": "PTY output: 'x = 42\\r\\n\\x1b[?2004l\\r\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.543995", "level": "DEBUG", "component": "VMManager", "message": "Sent input to VM 'test_basic': 'x = 42'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.544570", "level": "DEBUG", "component": "InteractiveSession", "message": "Command sent: 'print(\"Answer:\", x)\\n'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.545315", "level": "DEBUG", "component": "InteractiveSession", "message": "PTY output: 'print(\"Answer:\", x)\\r\\n\\x1b[?2004l\\rAnswer:\\t42\\r\\n\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.695654", "level": "DEBUG", "component": "VMManager", "message": "Sent input to VM 'test_basic': 'print(\"Answer:\", x)'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.996868", "level": "DEBUG", "component": "InteractiveSession", "message": "Drained output: 'x = 42\\r\\n\\x1b[?2004l\\r\\x1b[?2004h> print(\"Answer:\", x)\\r\\n\\x1b[?2004l\\rAnswer:\\t42\\r\\n\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.997375", "level": "DEBUG", "component": "VMManager", "message": "Read output from VM 'test_basic': 'x = 42\\r\\n\\x1b[?2004l\\r\\x1b[?2004h> print(\"Answer:\", x)\\r\\n\\x1b[?2004l\\rAnswer:\\t42\\r\\n\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:08.999633", "level": "DEBUG", "component": "InteractiveSession", "message": "Session test_basic terminated", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:09.000088", "level": "DEBUG", "component": "SessionManager", "message": "Cleaned up all 1 sessions", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:09.001866", "level": "DEBUG", "component": "LuaProcess", "message": "Cleaning up 0 temporary scripts and stopping interactive session", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:09.002168", "level": "DEBUG", "component": "LuaProcess", "message": "Cleanup completed", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:09.002446", "level": "DEBUG", "component": "VMManager", "message": "Shutdown complete: cleaned up 1 VMs, cancelled 0 futures", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:21:57.459752", "level": "DEBUG", "component": "VMManager", "message": "VMManager initialized with max_workers=10, debug_mode=True", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:21.569130", "level": "DEBUG", "component": "VMManager", "message": "VMManager initialized with max_workers=10, debug_mode=True", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:50.989521", "level": "DEBUG", "component": "VMManager", "message": "VMManager initialized with max_workers=10, debug_mode=True", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.583499", "level": "DEBUG", "component": "LuaProcess", "message": "Initializing LuaProcess: name='1', executable='lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.584217", "level": "DEBUG", "component": "LuaProcess", "message": "Verifying Lua executable availability: 'lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.592052", "level": "DEBUG", "component": "LuaProcess", "message": "Lua verification successful: ", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.592586", "level": "DEBUG", "component": "VMManager", "message": "Registered persistent VM '1' (type=basic, networked=False)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.592852", "level": "DEBUG", "component": "VMManager", "message": "Created VM '1' (type=basic, networked=False, persistent=True)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.604543", "level": "DEBUG", "component": "InteractiveSession", "message": "PTY output: 'Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio\\r\\n\\x1b[?2004h> '", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.705318", "level": "DEBUG", "component": "InteractiveSession", "message": "Session 1 started successfully", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.705864", "level": "DEBUG", "component": "SessionManager", "message": "Created session: 1", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.706169", "level": "DEBUG", "component": "InteractiveSession", "message": "Session 1 attached", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.707772", "level": "DEBUG", "component": "VMManager", "message": "Attached to VM '1' interactive session", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T14:22:58.708947", "level": "DEBUG", "component": "VMManager", "message": "Created interactive VM '1' (type=basic, auto_attach=True)", "context": {}, "duration": null}

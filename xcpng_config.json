@@ -1,0 +1,13 @@
+{
+    "xapi_url": "https://192.168.1.100",
+    "username": "root",
+    "password": "your_secure_password",
+    "template": "lua-bio-template",
+    "vm_name_prefix": "bioxen-lua",
+    "memory": "2GB",
+    "vcpus": 2,
+    "verify_ssl": false,
+    "ssh_timeout": 30,
+    "vm_network": "Pool-wide network associated with eth0",
+    "description": "Example XCP-ng configuration for BioXen-luavm"
+}
