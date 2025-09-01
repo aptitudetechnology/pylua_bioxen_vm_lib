@@ -76,30 +76,66 @@ class VMManager:
         self.logger.debug(f"VMManager initialized with max_workers={max_workers}, debug_mode={debug_mode}")
 
     # ==================== CORE VM MANAGEMENT ====================
-    def create_vm(self, vm_id: str, networked: bool = False, persistent: bool = False) -> LuaProcess:
+    def create_vm(self, vm_id: str, vm_type: str = "basic", networked: bool = False, 
+                  persistent: bool = False, debug_mode: bool = None, 
+                  lua_executable: str = None, config: dict = None) -> LuaProcess:
         """
-        Create a new Lua VM.
+        Create a new Lua VM with multi-VM type support (Phase 1).
         
         Args:
             vm_id: Unique identifier for the VM
+            vm_type: Type of VM to create ("basic" or "xcpng")
             networked: Whether to create a networked VM with socket support
             persistent: Whether this VM should be registered for interactive sessions
+            debug_mode: Override debug mode for this VM (uses manager default if None)
+            lua_executable: Override Lua executable for this VM (uses manager default if None)
+            config: Configuration dictionary for VM-specific settings (required for xcpng)
         Returns:
-            The created VM instance
+            The created VM instance (BasicLuaVM, NetworkedLuaVM, or XCPngVM)
         """
         if vm_id in self.vms:
             raise ValueError(f"VM with ID '{vm_id}' already exists")
+        
+        # Use manager defaults if not specified
+        vm_debug_mode = debug_mode if debug_mode is not None else self.debug_mode
+        vm_lua_executable = lua_executable if lua_executable is not None else self.lua_executable
+        
         with self._lock:
-            if networked:
-                vm = NetworkedLuaVM(name=vm_id, lua_executable=self.lua_executable, debug_mode=self.debug_mode)
-            else:
-                vm = LuaProcess(name=vm_id, lua_executable=self.lua_executable, debug_mode=self.debug_mode)
+            # Factory pattern implementation
+            vm_classes = {
+                "basic": self._create_basic_vm,
+                "xcpng": self._create_xcpng_vm
+            }
+            
+            if vm_type not in vm_classes:
+                raise ValueError(f"Unknown VM type: {vm_type}. Supported types: {list(vm_classes.keys())}")
+            
+            # Create VM using factory method
+            vm = vm_classes[vm_type](vm_id, networked, vm_debug_mode, vm_lua_executable, config)
             self.vms[vm_id] = vm
+            
             # Register for interactive sessions if persistent
             if persistent:
-                self._register_persistent_vm(vm_id, networked)
-            self.logger.debug(f"Created VM '{vm_id}' (networked={networked}, persistent={persistent})")
+                self._register_persistent_vm(vm_id, vm_type, networked)
+                
+            self.logger.debug(f"Created VM '{vm_id}' (type={vm_type}, networked={networked}, persistent={persistent})")
             return vm
+
+    def _create_basic_vm(self, vm_id: str, networked: bool, debug_mode: bool, 
+                        lua_executable: str, config: dict = None) -> LuaProcess:
+        """Create a basic VM (current implementation)"""
+        if networked:
+            return NetworkedLuaVM(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+        else:
+            return LuaProcess(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+    
+    def _create_xcpng_vm(self, vm_id: str, networked: bool, debug_mode: bool, 
+                        lua_executable: str, config: dict = None):
+        """Create an XCP-ng VM (Phase 1 placeholder)"""
+        from .xcp_ng_integration import XCPngVM
+        if config is None:
+            raise ValueError("XCP-ng VM requires configuration dictionary. Phase 2 will implement full XAPI integration.")
+        return XCPngVM(vm_id, config)
 
     def get_vm(self, vm_id: str) -> Optional[LuaProcess]:
         """Get a VM by ID."""
@@ -136,15 +172,18 @@ class VMManager:
             return False
 
     # ==================== PERSISTENT VM REGISTRY ====================
-    def _register_persistent_vm(self, vm_id: str, networked: bool) -> None:
-        """Register a VM in the persistent registry."""
+    def _register_persistent_vm(self, vm_id: str, vm_type: str, networked: bool) -> None:
+        """Register a VM in the persistent registry with vm_type support."""
+        vm = self.vms.get(vm_id)
         self._persistent_vms[vm_id] = {
             'created_at': time.time(),
+            'vm_type': vm_type,
             'networked': networked,
             'interactive_capable': True,
-            'session_active': False
+            'session_active': False,
+            'vm_class': vm.__class__.__name__ if vm else 'unknown'
         }
-        self.logger.debug(f"Registered persistent VM '{vm_id}' (networked={networked})")
+        self.logger.debug(f"Registered persistent VM '{vm_id}' (type={vm_type}, networked={networked})")
 
     def list_persistent_vms(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -171,10 +210,20 @@ class VMManager:
         vm = self.vms[vm_id]
         session = self.session_manager.get_session(vm_id)
         persistent_info = self._persistent_vms.get(vm_id, {})
+        
+        # Determine VM type based on class
+        from .xcp_ng_integration import XCPngVM
+        if isinstance(vm, XCPngVM):
+            vm_type = 'xcpng'
+        elif isinstance(vm, NetworkedLuaVM):
+            vm_type = 'networked'
+        else:
+            vm_type = 'basic'
+            
         return {
             'vm_id': vm_id,
             'vm_name': vm.name,
-            'vm_type': 'networked' if isinstance(vm, NetworkedLuaVM) else 'basic',
+            'vm_type': vm_type,
             'persistent': vm_id in self._persistent_vms,
             'session_exists': session is not None,
             'session_attached': session.is_attached() if session else False,

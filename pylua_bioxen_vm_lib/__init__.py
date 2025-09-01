@@ -8,6 +8,7 @@ from pylua_bioxen_vm_lib.lua_process import LuaProcess
 from pylua_bioxen_vm_lib.vm_manager import VMManager, VMCluster
 from pylua_bioxen_vm_lib.interactive_session import InteractiveSession, SessionManager
 from pylua_bioxen_vm_lib.networking import NetworkedLuaVM, LuaScriptTemplate, validate_port, validate_host
+# XCPngVM imported dynamically in create_vm() to avoid circular imports
 from pylua_bioxen_vm_lib.exceptions import (
     LuaVMError,
     LuaProcessError,
@@ -71,23 +72,42 @@ __all__ = [
 ]
 
 
-def create_vm(vm_id: str = "default", networked: bool = False, lua_executable: str = "lua", debug_mode: bool = False) -> LuaProcess:
+def create_vm(vm_id: str = "default", vm_type: str = "basic", networked: bool = False, 
+              persistent: bool = False, debug_mode: bool = False, 
+              lua_executable: str = "lua", config: dict = None):
     """
-    Create a Lua VM instance with optional networking support.
+    Create a Lua VM instance with multi-VM type support (Phase 1).
     
     Args:
         vm_id: Unique identifier for the VM instance
+        vm_type: Type of VM to create ("basic" or "xcpng")
         networked: Whether to enable networking capabilities via LuaSocket
-        lua_executable: Path to Lua interpreter (default: "lua")
+        persistent: Whether this VM should be registered for interactive sessions
         debug_mode: Enable debug logging output (default: False)
+        lua_executable: Path to Lua interpreter (default: "lua")
+        config: Configuration dictionary for VM-specific settings
         
     Returns:
-        LuaProcess or NetworkedLuaVM instance
+        BasicLuaVM, NetworkedLuaVM, or XCPngVM instance based on vm_type
+        
+    Raises:
+        ValueError: If vm_type is not supported
     """
-    if networked:
-        return NetworkedLuaVM(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+    # Factory pattern for VM creation
+    if vm_type == "basic":
+        # Create basic VM (current implementation, maintains backward compatibility)
+        if networked:
+            return NetworkedLuaVM(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+        else:
+            return LuaProcess(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+    
+    elif vm_type == "xcpng":
+        # Create XCP-ng VM (Phase 1 placeholder, Phase 2 implementation)
+        from .xcp_ng_integration import XCPngVM
+        return XCPngVM(vm_id, config)
+    
     else:
-        return LuaProcess(name=vm_id, lua_executable=lua_executable, debug_mode=debug_mode)
+        raise ValueError(f"Unknown VM type: {vm_type}. Supported types: basic, xcpng")
 
 
 def create_manager(max_workers: int = 10, lua_executable: str = "lua", debug_mode: bool = False) -> VMManager:
