@@ -211,6 +211,27 @@ class XCPngConfigValidator:
 - Create configuration migration tools
 
 ## Implementation Strategy
+### **Phase 4: High Availability (HA) & Clustering**
+1. Implement HA pool configuration and per-VM HA policies in xapi_client.py.
+2. Add failover logic and cluster health monitoring.
+3. Document HA setup, fencing, and recovery procedures.
+
+### **Phase 5: SSH Session Management**
+1. Add resilience and reconnect logic to SSH session handling (ssh_session.py).
+2. Implement robust error handling and session recovery for long-running operations.
+3. Add tests for SSH session failure and recovery scenarios.
+
+### **Phase 6: LuaSocket/Inter-VM Communication**
+1. Implement LuaSocket-based inter-VM messaging and communication features.
+2. Integrate messaging into VM manager and CLI.
+3. Add tests and documentation for inter-VM comms.
+
+---
+
+## Next Steps (as of 1 September 2025)
+- Update documentation and CLI to reflect new capabilities.
+- Prioritize development of critical/high-priority features above.
+- Begin implementation and testing of each new feature area.
 
 ### **Phase 1: Core XAPI Expansion (Hotel Room Feasible)**
 1. Study XCP-ng XAPI documentation thoroughly
