@@ -1,106 +1,67 @@
 """
 Basic usage example for PyLua VM Curator system.
-Demonstrates environment setup, package installation, VM creation, and health checks.
-Phase 3: Added XCP-ng VM examples with multi-VM support.
+Demonstrates the Phase 3 multi-VM support with basic and XCP-ng VMs.
+Phase 3: Complete CLI integration and unified VM management.
 """
 import json
-from pylua_bioxen_vm_lib.env import EnvironmentManager
-from pylua_bioxen_vm_lib.utils.curator import Curator
-from pylua_bioxen_vm_lib.lua_process import LuaProcess
-from pylua_bioxen_vm_lib.vm_manager import VMManager
-from pylua_bioxen_vm_lib.interactive_session import SessionManager
-from pylua_bioxen_vm_lib import create_vm
+import time
+from pylua_bioxen_vm_lib import create_vm, VMManager
 
-# Setup environment
-env = EnvironmentManager(profile='standard')
-print("System info:", env.get_system_info())
-errors = env.validate()
-if errors:
-    print("Environment errors:", errors)
-else:
-    print("Environment validated.")
-
-# Curator package management
-curator = Curator()
-curator.curate_environment('standard')
-curator.install_package('lua-cjson')
-
-# Create a Lua VM and run code
-vm = LuaProcess(name='example_vm')
-result = vm.execute_string('print("Hello from Lua!")')
-print("Lua VM result:", result)
-
-# Health check and recommendations
-health = curator.health_check()
-print("Health check:", health)
-recs = curator.get_recommendations()
-print("Recommended packages:", recs)
-
-# Interactive Session Lifecycle
-try:
-    vm_manager = VMManager()
-    session = vm_manager.create_interactive_session()
-    print("Interactive Session created:", session)
-except NameError as e:
-    print("❌ Interactive Session failed:", e)
-except Exception as e:
-    print("❌ Interactive Session error:", e)
-
-# Session Manager Registry Operations
-try:
-    session_manager = SessionManager()
-    session_manager.register_session('example_session', session)
-    print("Session registered in manager.")
-except NameError as e:
-    print("❌ Registry operations failed:", e)
-except Exception as e:
-    print("❌ Registry operations error:", e)
-
-# Complex Interactive Session
-try:
-    complex_session = vm_manager.create_interactive_session(config={'complex': True})
-    print("Complex Interactive Session created:", complex_session)
-except NameError as e:
-    print("❌ Complex session failed:", e)
-except Exception as e:
-    print("❌ Complex session error:", e)
-
-# Session Reattachment
-try:
-    reattached = vm_manager.reattach_session('example_session')
-    print("Session reattached:", reattached)
-except NameError as e:
-    print("❌ Session reattachment failed:", e)
-except Exception as e:
-    print("❌ Session reattachment error:", e)
-
-print("==================================================")
-print("Installation test complete!")
-print("All features tested for pylua_bioxen_vm_lib interactive support")
-
-print("\n" + "=" * 60)
-print("PHASE 3: Multi-VM Factory Pattern Examples")
+print("🧬 PyLua BioXen VM Library - Basic Usage Examples")
 print("=" * 60)
 
-# Example 1: Basic VM (Local Process) - Existing functionality
-print("\n1. Basic VM (Local Process)")
-print("-" * 30)
-try:
-    basic_vm = create_vm("example_basic", vm_type="basic")
-    result = basic_vm.execute_string('print("Hello from Basic VM!")')
-    print("✅ Basic VM result:", result.get('stdout', 'No output'))
-except Exception as e:
-    print("❌ Basic VM error:", e)
-
-# Example 2: XCP-ng VM with Configuration
-print("\n2. XCP-ng VM (Remote Virtual Machine)")
+# Phase 3: Core VM Factory Pattern Examples
+print("\n1. Basic VM Creation and Execution")
 print("-" * 40)
 
-# Example XCP-ng configuration
+try:
+    # Create a basic VM (local process)
+    basic_vm = create_vm("demo_basic", vm_type="basic")
+    print("✅ Basic VM created successfully")
+    
+    # Execute simple Lua code
+    result = basic_vm.execute_string('print("Hello from Basic VM!")')
+    print("✅ Execution result:", result.get('stdout', '').strip())
+    
+    # Execute biological computation example
+    bio_code = '''
+    function calculate_gc_content(sequence)
+        local gc_count = 0
+        local total = #sequence
+        
+        for i = 1, total do
+            local nucleotide = sequence:sub(i, i):upper()
+            if nucleotide == "G" or nucleotide == "C" then
+                gc_count = gc_count + 1
+            end
+        end
+        
+        return (gc_count / total) * 100
+    end
+    
+    -- Test with sample DNA sequence
+    local dna = "ATCGATCGTAGCTAGCGGCGAATC"
+    local gc_percentage = calculate_gc_content(dna)
+    print("DNA Sequence: " .. dna)
+    print("GC Content: " .. string.format("%.1f%%", gc_percentage))
+    '''
+    
+    result = basic_vm.execute_string(bio_code)
+    print("✅ Biological computation result:")
+    if result.get('stdout'):
+        print("   " + result['stdout'].strip().replace('\n', '\n   '))
+    
+except Exception as e:
+    print(f"❌ Basic VM error: {e}")
+
+print("\n2. XCP-ng VM Creation (API Demonstration)")
+print("-" * 50)
+
+# XCP-ng VM configuration example
 xcpng_config = {
-    "xapi_url": "https://xcpng-host.example.com",
+    "xapi_url": "https://demo-xcpng.example.com",
     "username": "root",
-    "password": "example_password",
+    "password": "demo_password",
     "template": "lua-bio-template",
     "vm_name": "demo-lua-vm",
     "memory": "2GB",
@@ -109,90 +70,140 @@ xcpng_config = {
 }
 
 try:
-    # Note: This will fail without actual XCP-ng infrastructure
-    # but demonstrates the API usage pattern
-    xcpng_vm = create_vm("example_xcpng", vm_type="xcpng", config=xcpng_config)
+    # Note: This will show expected error without actual XCP-ng infrastructure
+    xcpng_vm = create_vm("demo_xcpng", vm_type="xcpng", config=xcpng_config)
+    print("✅ XCP-ng VM object created successfully")
     
-    # Start the VM (creates VM in XCP-ng and establishes SSH)
-    xcpng_vm.start()
-    
-    # Execute Lua code remotely
-    result = xcpng_vm.execute_string('print("Hello from XCP-ng VM!")')
-    print("✅ XCP-ng VM result:", result.get('stdout', 'No output'))
-    
-    # Install a package in the remote VM
-    xcpng_vm.install_package("lua-cjson")
-    print("✅ Package installed in XCP-ng VM")
-    
-    # Stop the VM
-    xcpng_vm.stop()
-    print("✅ XCP-ng VM stopped")
+    # This would work with real XCP-ng infrastructure
+    # xcpng_vm.start()
+    # result = xcpng_vm.execute_string(bio_code)
+    # xcpng_vm.stop()
     
 except Exception as e:
-    print(f"❌ XCP-ng VM example (expected without infrastructure): {e}")
-    print("💡 This is normal without actual XCP-ng host connectivity")
+    print(f"❌ XCP-ng VM demo (expected without infrastructure): {str(e)[:80]}...")
+    print("💡 This demonstrates the API - real usage requires XCP-ng host")
 
-# Example 3: VMManager with Multi-VM Support
-print("\n3. VMManager with Multi-VM Support")
+print("\n3. VMManager Multi-VM Orchestration")
 print("-" * 40)
 
 try:
-    with VMManager(debug_mode=True) as manager:
-        # Create both types of VMs through manager
-        print("Creating basic VM through manager...")
+    with VMManager(debug_mode=False) as manager:
+        print("✅ VMManager initialized")
+        
+        # Create basic VM through manager
         basic_session = manager.create_interactive_vm("managed_basic", vm_type="basic")
+        print("✅ Interactive basic VM created through VMManager")
         
-        print("Creating XCP-ng VM through manager...")
-        try:
-            xcpng_session = manager.create_interactive_vm("managed_xcpng", vm_type="xcpng", config=xcpng_config)
-            print("✅ Both VM types created successfully")
-            
-            # Unified interface for both types
-            manager.send_input("managed_basic", "x = 1 + 1")
-            manager.send_input("managed_xcpng", "y = 2 + 2")
-            
-            print("Commands sent to both VMs")
-            
-        except Exception as e:
-            print(f"❌ XCP-ng VM creation (expected): {e}")
-            print("✅ Basic VM created successfully")
+        # Send commands to VM
+        manager.send_input("managed_basic", "vm_name = 'Managed Basic VM'")
+        manager.send_input("managed_basic", "print('Running in:', vm_name)")
         
-        # List all sessions
+        # Read output
+        time.sleep(0.2)  # Allow processing
+        output = manager.read_output("managed_basic")
+        if output:
+            print("✅ VM response:", output.strip().split('\n')[-2] if '\n' in output else output.strip())
+        
+        # List active sessions
         sessions = manager.session_manager.list_sessions()
         print(f"✅ Active sessions: {list(sessions.keys())}")
         
+        # Try XCP-ng VM through manager (will show expected error)
+        try:
+            xcpng_session = manager.create_interactive_vm("managed_xcpng", vm_type="xcpng", config=xcpng_config)
+            print("✅ XCP-ng VM session created through VMManager")
+        except Exception as e:
+            print(f"❌ XCP-ng VM creation (expected): {str(e)[:60]}...")
+        
 except Exception as e:
-    print(f"❌ VMManager example error: {e}")
+    print(f"❌ VMManager error: {e}")
 
-# Example 4: Configuration File Loading
-print("\n4. Configuration File Loading Example")
-print("-" * 45)
+print("\n4. Configuration File Management")
+print("-" * 35)
 
-config_file = "xcpng_config.json"
 try:
-    # Create example config file
+    # Create example configuration file
+    config_file = "demo_xcpng_config.json"
     with open(config_file, 'w') as f:
         json.dump(xcpng_config, f, indent=2)
     
-    # Load config from file
+    print(f"✅ Configuration saved to {config_file}")
+    
+    # Load and validate config
     with open(config_file) as f:
         loaded_config = json.load(f)
     
-    print(f"✅ Configuration loaded from {config_file}")
+    print("✅ Configuration loaded and validated:")
     print(f"   Host: {loaded_config.get('xapi_url')}")
     print(f"   Template: {loaded_config.get('template')}")
-    
-    # Use loaded config (would work with real XCP-ng)
-    print("💡 Config ready for XCP-ng VM creation")
+    print(f"   Memory: {loaded_config.get('memory')}")
+    print(f"   vCPUs: {loaded_config.get('vcpus')}")
     
 except Exception as e:
-    print(f"❌ Config file example error: {e}")
+    print(f"❌ Configuration management error: {e}")
+
+print("\n5. Biological Sequence Analysis Workflow")
+print("-" * 45)
+
+# Multiple DNA sequences for analysis
+sequences = {
+    "sample_1": "ATCGATCGTAGCTAGCGGCGAATC",
+    "sample_2": "GGCCTTAAGCCGATCGTAGCCCGG", 
+    "sample_3": "AATTGGCCTTAAGCCGATCGTAGC",
+    "sample_4": "CCGGAATTCCGGAATTCCGGAATT"
+}
+
+try:
+    # Analyze sequences using basic VM
+    analysis_vm = create_vm("sequence_analyzer", vm_type="basic")
+    
+    # Define analysis function
+    analysis_function = '''
+    function analyze_dna_sequence(sequence, name)
+        local length = #sequence
+        local gc_count = 0
+        local at_count = 0
+        
+        for i = 1, length do
+            local nucleotide = sequence:sub(i, i):upper()
+            if nucleotide == "G" or nucleotide == "C" then
+                gc_count = gc_count + 1
+            elseif nucleotide == "A" or nucleotide == "T" then
+                at_count = at_count + 1
+            end
+        end
+        
+        local gc_content = (gc_count / length) * 100
+        local at_content = (at_count / length) * 100
+        
+        print(string.format("%s: Len=%d, GC=%.1f%%, AT=%.1f%%", 
+              name, length, gc_content, at_content))
+    end
+    '''
+    
+    analysis_vm.execute_string(analysis_function)
+    print("✅ DNA analysis function loaded")
+    
+    # Analyze each sequence
+    for sample_name, sequence in sequences.items():
+        analysis_code = f'''analyze_dna_sequence("{sequence}", "{sample_name}")'''
+        result = analysis_vm.execute_string(analysis_code)
+        if result.get('stdout'):
+            print(f"   {result['stdout'].strip()}")
+    
+except Exception as e:
+    print(f"❌ Biological analysis error: {e}")
 
 print("\n" + "=" * 60)
-print("PHASE 3 EXAMPLES COMPLETE")
+print("🎉 Phase 3 Basic Usage Examples Complete!")
 print("=" * 60)
 print("✅ Basic VM: Local Lua process execution")
-print("✅ XCP-ng VM: Remote VM with XAPI/SSH integration")
-print("✅ VMManager: Unified multi-VM management")
-print("✅ Config: File-based XCP-ng configuration")
-print("\n💡 Use 'python interactive-bioxen-lua.py' for interactive CLI")
+print("✅ XCP-ng VM: Remote VM API demonstration") 
+print("✅ VMManager: Multi-VM session management")
+print("✅ Configuration: File-based setup management")
+print("✅ Biological: DNA sequence analysis workflows")
+print("\n💡 Next steps:")
+print("   • Use interactive CLI: python interactive-bioxen-lua.py")
+print("   • Set up XCP-ng infrastructure for remote VMs")
+print("   • Scale biological computations across multiple VMs")
+print("   • Explore advanced multi-VM orchestration patterns")
