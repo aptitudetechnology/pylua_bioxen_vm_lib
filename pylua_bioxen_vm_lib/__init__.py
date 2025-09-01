@@ -30,7 +30,7 @@ from pylua_bioxen_vm_lib.exceptions import (
     VMManagerError
 )
 
-__version__ = "0.2.0"
+__version__ = "0.1.19"
 __author__ = "pylua_bioxen_vm_lib contributors"
 __email__ = ""
 __description__ = "Process-isolated networked Lua VMs with interactive terminal support"

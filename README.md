@@ -1,20 +1,23 @@
 # pylua_bioxen_vm_lib
 
-A Python library for orchestrating networked Lua virtual machines through subprocess management and socket communication.
+A Python library for orchestrating networked Lua virtual machines through subprocess management and socket communication with multi-VM support.
 
 ## Overview
 
-pylua_bioxen_vm_lib provides a unique approach to running multiple Lua interpreters as isolated processes, managed from Python with built-in networking capabilities. Unlike embedded Lua solutions, this library offers true process isolation, fault tolerance, and dynamic scaling of Lua VMs.
+pylua_bioxen_vm_lib provides a unique approach to running multiple Lua interpreters as isolated processes, managed from Python with built-in networking capabilities. **Version 0.1.19** introduces **Phase 1 multi-VM support** with factory pattern for different VM types including XCP-ng integration placeholders.
 
 ## Key Features
 
+- **Multi-VM Architecture** - Factory pattern supporting different VM types (basic, xcpng)
 - **Process-isolated Lua VMs** - Each VM runs in its own subprocess for fault tolerance
+- **XCP-ng Integration** - Phase 1 placeholder support for XCP-ng VMs (full implementation in Phase 2)
 - **Built-in networking** - Socket-based communication using LuaSocket
 - **Multiple communication patterns** - Server, client, and P2P messaging modes
 - **Dynamic VM management** - Spawn and terminate VMs as needed
 - **Language-agnostic architecture** - Could be extended to other interpreters
 - **Python orchestration** - Full lifecycle management from Python
 - **Interactive sessions** - Attach/detach to running VMs for real-time interaction
+- **Backward compatibility** - All existing code works unchanged
 ## Interactive Terminal Support
 
 pylua_bioxen_vm_lib now supports interactive session management, allowing you to attach to running Lua VMs and interact with them in real-time.
@@ -43,6 +46,29 @@ output = session.read_output()
 
 # Detach when done
 session.detach()
+```
+
+### Multi-VM Support (Phase 1)
+```python
+from pylua_bioxen_vm_lib import create_vm, VMManager
+
+# Create different types of VMs
+basic_vm = create_vm("basic_worker", vm_type="basic")
+xcpng_vm = create_vm("xcpng_worker", vm_type="xcpng", config={
+    "xcpng_host": "192.168.1.100",
+    "username": "root", 
+    "password": "secret",
+    "template": "lua-bio-template"
+})
+
+# Use VMManager for coordinated operations
+with VMManager() as manager:
+    basic = manager.create_vm("basic", vm_type="basic")
+    xcpng = manager.create_vm("xcpng", vm_type="xcpng", config=config)
+    
+    # Get VM info
+    info = manager.get_vm_info("xcpng")
+    print(f"VM Type: {info['vm_type']}")  # xcpng
 ```
 
 ## Architecture
