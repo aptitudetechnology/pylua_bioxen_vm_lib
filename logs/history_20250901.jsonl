@@ -1,0 +1,13 @@
+{"timestamp": "2025-09-01T12:09:29.405948", "level": "DEBUG", "component": "LuaProcess", "message": "Initializing LuaProcess: name='test_old', executable='lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.406444", "level": "DEBUG", "component": "LuaProcess", "message": "Verifying Lua executable availability: 'lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.411883", "level": "DEBUG", "component": "LuaProcess", "message": "Lua verification successful: ", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.414329", "level": "DEBUG", "component": "NetworkedLuaVM", "message": "Cleaning up 0 temporary scripts and stopping interactive session", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.414594", "level": "DEBUG", "component": "NetworkedLuaVM", "message": "Cleanup completed", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.415766", "level": "DEBUG", "component": "VMManager", "message": "VMManager initialized with max_workers=10, debug_mode=True", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.416066", "level": "DEBUG", "component": "LuaProcess", "message": "Initializing LuaProcess: name='manager_basic', executable='lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.416258", "level": "DEBUG", "component": "LuaProcess", "message": "Verifying Lua executable availability: 'lua'", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.420821", "level": "DEBUG", "component": "LuaProcess", "message": "Lua verification successful: ", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.421441", "level": "DEBUG", "component": "VMManager", "message": "Created VM 'manager_basic' (type=basic, networked=False, persistent=False)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.421751", "level": "DEBUG", "component": "VMManager", "message": "Created VM 'manager_xcpng' (type=xcpng, networked=False, persistent=False)", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.421959", "level": "DEBUG", "component": "LuaProcess", "message": "Cleaning up 0 temporary scripts and stopping interactive session", "context": {}, "duration": null}
+{"timestamp": "2025-09-01T12:09:29.423497", "level": "DEBUG", "component": "LuaProcess", "message": "Cleanup completed", "context": {}, "duration": null}
