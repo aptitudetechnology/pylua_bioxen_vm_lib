@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **pylua_bioxen_vm_lib** (version 0.1.21) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework. It's designed for biological computation and genomic data virtualization with Phase 3 interactive CLI and multi-VM support.
+The **pylua_bioxen_vm_lib** (version 0.1.22) is a Python library for managing Lua virtual machines (VMs) within the BioXen framework. It's designed for biological computation and genomic data virtualization with Phase 3 interactive CLI and multi-VM support.
 
 **Key Features:**
 - **Interactive CLI** with `bioxen-luavm` command-line tool
@@ -55,7 +55,7 @@ After installing the package, the interactive CLI is available via:
 
 ```bash
 # Install from PyPI test
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pylua-bioxen-vm-lib==0.1.21
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pylua-bioxen-vm-lib==0.1.22
 
 # Launch CLI
 bioxen-luavm
@@ -336,7 +336,7 @@ bioxen-luavm
 - ✅ **Session Management**: Interactive VM sessions with attach/detach
 - ✅ **Error Handling**: Comprehensive exception handling and validation
 - ✅ **Documentation**: Complete API, installation, and CLI guides
-- ✅ **PyPI Deployment**: Version 0.1.21 successfully deployed to PyPI test
+- ✅ **PyPI Deployment**: Version 0.1.22 successfully deployed to PyPI test
 
 ### Module Structure (Phase 3)
 
@@ -832,7 +832,7 @@ Create `xcpng_config.json`:
 **From PyPI Test (Phase 3):**
 ```bash
 # Install from PyPI test repository
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pylua-bioxen-vm-lib==0.1.21
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pylua-bioxen-vm-lib==0.1.22
 ```
 
 **From Source:**
@@ -930,6 +930,7 @@ xe template-create vm-uuid=<template-uuid> name-label="lua-bio-template"
 - **0.1.19:** Phase 2 complete (XCP-ng integration with XAPI client)
 - **0.1.20:** Phase 2 refinements and additional XCP-ng features
 - **0.1.21:** Phase 3 complete (interactive CLI and multi-VM support)
+- **0.1.22:** Specification alignment and version consistency update
 
 ### Phase 3 Achievements
 ✅ **Interactive CLI** - Complete `bioxen-luavm` command-line interface  
@@ -952,4 +953,4 @@ xe template-create vm-uuid=<template-uuid> name-label="lua-bio-template"
 
 ---
 
-*This specification reflects the complete Phase 3 implementation of pylua_bioxen_vm_lib version 0.1.21, updated September 1, 2025. All features are implemented, tested, and available via PyPI test deployment.*
+*This specification reflects the complete Phase 3 implementation of pylua_bioxen_vm_lib version 0.1.22, updated September 1, 2025. All features are implemented, tested, and available via PyPI test deployment.*
