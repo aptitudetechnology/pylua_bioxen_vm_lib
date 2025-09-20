@@ -316,3 +316,111 @@ class XCPngVM:
             
         except Exception:
             pass  # Ignore cleanup errors
+    
+    # ==================== COMPATIBILITY METHODS ====================
+    # These methods ensure XCPngVM is compatible with existing LuaProcess interface
+    # for seamless integration with BioXen-luavm project
+    
+    @property
+    def name(self) -> str:
+        """Get VM name (compatibility with LuaProcess.name)"""
+        return self.vm_id
+    
+    def is_interactive_running(self) -> bool:
+        """Check if interactive session is running (compatibility)"""
+        return self.session_active
+    
+    def setup_packages(self, profile: str = 'standard') -> dict:
+        """Setup packages using curator-like interface (compatibility)"""
+        if not self.session_active:
+            raise InteractiveSessionError("No active session")
+        
+        # Simulate curator package setup over SSH
+        packages_to_install = {
+            'minimal': ['json'],
+            'standard': ['json', 'lpeg', 'luasocket'],
+            'full': ['json', 'lpeg', 'luasocket', 'lfs', 'penlight']
+        }
+        
+        target_packages = packages_to_install.get(profile, packages_to_install['standard'])
+        installed_packages = []
+        failed_packages = []
+        
+        for package in target_packages:
+            try:
+                if self.install_package(package):
+                    installed_packages.append(package)
+                else:
+                    failed_packages.append(package)
+            except Exception:
+                failed_packages.append(package)
+        
+        return {
+            'success': len(failed_packages) == 0,
+            'profile': profile,
+            'installed_packages': installed_packages,
+            'failed_packages': failed_packages,
+            'total_packages': len(target_packages),
+            'curator_recommendations': []
+        }
+    
+    def get_package_recommendations(self) -> list:
+        """Get package recommendations (compatibility)"""
+        # Basic recommendations for biological computing
+        return [
+            {
+                'name': 'json',
+                'description': 'JSON encoding/decoding',
+                'rationale': 'Essential for data interchange in biological workflows'
+            },
+            {
+                'name': 'luasocket',
+                'description': 'Network communication',
+                'rationale': 'Required for distributed biological computing'
+            }
+        ]
+    
+    def check_environment_health(self) -> dict:
+        """Check environment health (compatibility)"""
+        health_info = {
+            'vm_info': {
+                'name': self.vm_id,
+                'type': 'xcpng',
+                'session_active': self.session_active,
+                'vm_uuid': self.vm_uuid,
+                'vm_ip': self.vm_ip
+            },
+            'system_health': 'healthy' if self.session_active else 'inactive',
+            'package_manager': 'luarocks',
+            'curator_available': self.curator is not None
+        }
+        
+        if self.session_active:
+            try:
+                # Test basic Lua functionality
+                result = self.execute_string('print("health_check")')
+                health_info['lua_responsive'] = 'health_check' in result.get('stdout', '')
+            except:
+                health_info['lua_responsive'] = False
+        
+        return health_info
+    
+    def execute_file(self, script_path: str) -> dict:
+        """Execute Lua file (compatibility with LuaProcess)"""
+        if not self.session_active:
+            self.start()
+        
+        try:
+            # Read file content (assuming local file for now)
+            with open(script_path, 'r') as f:
+                lua_code = f.read()
+            
+            return self.execute_string(lua_code)
+        except Exception as e:
+            return {'stdout': '', 'stderr': f'File execution error: {str(e)}'}
+    
+    def cleanup_temp_files(self):
+        """Cleanup temporary files (compatibility)"""
+        # For XCP-ng VMs, temp files would be on the remote VM
+        # This could be enhanced to clean up remote temp files via SSH
+        pass
