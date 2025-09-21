@@ -25,8 +25,11 @@ except ImportError:
     if env_file.exists():
         with open(env_file) as f:
             for line in f:
-                if '=' in line and not line.startswith('#'):
-                    key, value = line.strip().split('=', 1)
+                line = line.strip()
+                if '=' in line and not line.startswith('#') and line:
+                    key, value = line.split('=', 1)
+                    # Remove quotes if present
+                    value = value.strip().strip('"').strip("'")
                     os.environ[key] = value
         print("✅ Manually loaded .env file")
     else:
