@@ -23,7 +23,10 @@ def test_xapi_connection():
     print("=" * 60)
     
     try:
-        from pylua_bioxen_vm_lib.xapi_client import XAPIClient
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pylua_bioxen_vm_lib'))
+        from xapi_client import XAPIClient
         
         # Create XAPI client
         xapi_client = XAPIClient(

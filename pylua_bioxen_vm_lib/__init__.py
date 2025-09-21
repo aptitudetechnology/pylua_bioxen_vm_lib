@@ -32,6 +32,13 @@ except ImportError:
     LuaScriptTemplate = None
     validate_port = None
     validate_host = None
+
+try:
+    from pylua_bioxen_vm_lib.xapi_client import XAPIClient
+except ImportError:
+    # XAPIClient may not be available during Phase 1 testing
+    XAPIClient = None
+
 # XCPngVM imported dynamically in create_vm() to avoid circular imports
 from pylua_bioxen_vm_lib.exceptions import (
     LuaVMError,
@@ -68,6 +75,7 @@ __all__ = [
     "InteractiveSession",
     "SessionManager",
     "LuaScriptTemplate",
+    "XAPIClient",
     "validate_port",
     "validate_host",
     "LuaVMError",
