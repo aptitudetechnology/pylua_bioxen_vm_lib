@@ -8,6 +8,10 @@ import sys
 import os
 from pathlib import Path
 
+# Load environment variables from .env
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=Path(__file__).parent / '.env')
+
 # Add the library to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -47,10 +51,11 @@ def test_phase1_deliverables():
         # Test XCP-ng VM creation (would fail without real XCP-ng, but validates factory pattern)
         try:
             test_config = {
-                'xcp_host': '192.168.1.100',
-                'xcp_username': 'root',
-                'xcp_password': 'testpass',
-                'template_name': 'test-template'
+                'xcp_host': os.environ.get('XCP_HOST'),
+                'xcp_username': os.environ.get('XCP_USERNAME'),
+                'xcp_password': os.environ.get('XCP_PASSWORD'),
+                'template_name': os.environ.get('XCP_TEMPLATE'),
+                'vm_username': os.environ.get('VM_USERNAME'),
             }
             # This will fail without real XCP-ng, but validates the factory pattern
             xcpng_vm = vm_manager.create_vm('test-xcpng', vm_type='xcpng', config=test_config)
@@ -71,13 +76,12 @@ def test_phase1_deliverables():
     print("\n3. Testing Configuration Framework...")
     try:
         test_config_dict = {
-            'xcp_host': '192.168.1.100',
-            'xcp_username': 'root',
-            'xcp_password': 'testpass',
-            'template_name': 'test-template',
-            'vm_username': 'test'
+            'xcp_host': os.environ.get('XCP_HOST'),
+            'xcp_username': os.environ.get('XCP_USERNAME'),
+            'xcp_password': os.environ.get('XCP_PASSWORD'),
+            'template_name': os.environ.get('XCP_TEMPLATE'),
+            'vm_username': os.environ.get('VM_USERNAME'),
         }
-        
         config = XCPngConfig(config_dict=test_config_dict)
         config.validate()
         print("   ✅ Configuration validation works")

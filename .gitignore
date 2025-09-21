@@ -48,6 +48,9 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+
+# Environment variables (credentials, secrets)
+.env
 .pytest_cache/
 cover/
 
