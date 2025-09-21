@@ -14,10 +14,15 @@ project_dir = Path(__file__).parent
 sys.path.insert(0, str(project_dir))
 
 # Load environment variables
+print("🔧 Loading environment variables...")
 try:
     from dotenv import load_dotenv
     load_dotenv(dotenv_path=project_dir / '.env')
-    print("✅ Loaded .env file")
+    print("✅ Loaded .env file with python-dotenv")
+    # Debug: check what was loaded
+    print(f"   📝 XCP_HOST: {os.getenv('XCP_HOST', 'NOT_SET')}")
+    print(f"   📝 XCP_USERNAME: {os.getenv('XCP_USERNAME', 'NOT_SET')}")
+    print(f"   📝 XCP_PASSWORD: {'***' if os.getenv('XCP_PASSWORD') else 'NOT_SET'}")
 except ImportError:
     print("⚠️  python-dotenv not installed. Loading .env manually...")
     # Manual .env loading
@@ -97,14 +102,19 @@ def test_simple_vm_creation():
         for i in range(12):  # 2 minutes
             time.sleep(10)
             
-            # Check VM status via SSH
-            import subprocess
-            result = subprocess.run([
-                'ssh', 'root@192.168.1.198', 
-                f'xe vm-param-get uuid={vm_uuid} param-name=power-state'
-            ], capture_output=True, text=True, timeout=10)
-            
-            power_state = result.stdout.strip()
+            # Check VM status via SSH using paramiko
+            import paramiko
+            try:
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect('192.168.1.198', username='root', password=xcp_password, timeout=10)
+                
+                stdin, stdout, stderr = ssh.exec_command(f'xe vm-param-get uuid={vm_uuid} param-name=power-state')
+                power_state = stdout.read().decode().strip()
+                ssh.close()
+            except Exception as e:
+                print(f"   ❌ SSH connection failed: {e}")
+                power_state = "unknown"
             print(f"   ⏱️  {(i+1)*10}s - Power state: {power_state}")
             
             if power_state == "halted":
@@ -114,16 +124,21 @@ def test_simple_vm_creation():
                 print(f"   ✅ VM running stable")
                 
                 # Try to get network info
-                result = subprocess.run([
-                    'ssh', 'root@192.168.1.198',
-                    f'xe vm-param-get uuid={vm_uuid} param-name=networks'
-                ], capture_output=True, text=True, timeout=10)
-                
-                networks = result.stdout.strip()
-                if networks:
-                    print(f"   🌐 Network info: {networks}")
-                else:
-                    print(f"   ⏳ No network info yet (still booting)")
+                try:
+                    ssh = paramiko.SSHClient()
+                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    ssh.connect('192.168.1.198', username='root', password=xcp_password, timeout=10)
+                    
+                    stdin, stdout, stderr = ssh.exec_command(f'xe vm-param-get uuid={vm_uuid} param-name=networks')
+                    networks = stdout.read().decode().strip()
+                    ssh.close()
+                    
+                    if networks:
+                        print(f"   🌐 Network info: {networks}")
+                    else:
+                        print(f"   ⏳ No network info yet (still booting)")
+                except Exception as e:
+                    print(f"   ❌ Failed to get network info: {e}")
         
         print(f"\n📊 SIMPLE VM TEST SUMMARY")
         print("=" * 30)
