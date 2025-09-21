@@ -54,7 +54,7 @@ def test_cloud_vm_creation():
         templates = client.list_templates()
         
         cloud_template = None
-        template_uuid = "93ee7338-8e41-334e-2115-0ddbfb6e18ba"  # From setup script
+        template_uuid = "cea07a22-1811-e80e-2799-9b64117deab7"  # New fixed Debian 12 template
         
         # Look for our specific cloud template
         for template in templates:
@@ -68,7 +68,7 @@ def test_cloud_vm_creation():
         if not cloud_template:
             # Fallback: look for any cloud template with BioXen in name
             for template in templates:
-                if 'BioXen' in template.get('name-label', ''):
+                if 'BioXen' in template.get('name-label', '') and 'Fixed' in template.get('name-label', ''):
                     cloud_template = template
                     template_name = template['name-label']
                     template_uuid = template.get('uuid')
@@ -77,7 +77,8 @@ def test_cloud_vm_creation():
                     break
         
         if not cloud_template:
-            print("❌ Cloud template not found. Run setup_simple_cloud_template.py first")
+            print("❌ Fixed cloud template not found.")
+            print("💡 Create with: xe vm-clone vm=<debian-12-uuid> new-name-label='Debian-12-Cloud-BioXen-Fixed'")
             return False
         
         # Create cloud-init configuration
