@@ -40,6 +40,9 @@ class XCPngConfig:
         """
         self.config = self.DEFAULT_CONFIG.copy()
         
+        # Load from environment variables first
+        self.load_from_environment()
+        
         # Load from file if provided
         if config_file:
             self.load_from_file(config_file)
@@ -62,6 +65,23 @@ class XCPngConfig:
             raise VMManagerError(f"Invalid JSON in configuration file: {e}")
         except Exception as e:
             raise VMManagerError(f"Error loading configuration file: {e}")
+    
+    def load_from_environment(self):
+        """Load configuration from environment variables"""
+        env_mapping = {
+            'xcp_host': 'XCP_HOST',
+            'xcp_username': 'XCP_USERNAME', 
+            'xcp_password': 'XCP_PASSWORD',
+            'template_name': 'XCP_TEMPLATE',
+            'vm_username': 'VM_USERNAME',
+            'vm_password': 'VM_PASSWORD',
+            'vm_key_file': 'VM_KEY_FILE'
+        }
+        
+        for config_key, env_var in env_mapping.items():
+            env_value = os.getenv(env_var)
+            if env_value is not None:
+                self.config[config_key] = env_value
     
     def validate(self) -> bool:
         """

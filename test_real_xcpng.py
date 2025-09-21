@@ -33,8 +33,8 @@ def test_xcpng_connection():
         config = XCPngConfig()
         xcp_config = config.get_xcp_connection_config()
         
-        print(f"📡 Connecting to XCP-ng server: {xcp_config['host']}")
-        print(f"👤 Username: {xcp_config['username']}")
+        print(f"📡 Connecting to XCP-ng server: {xcp_config['xcp_host']}")
+        print(f"👤 Username: {xcp_config['xcp_username']}")
         
         # Test connection to existing VM
         vm_name = "bioxen-lua"  # Using your running VM
@@ -126,17 +126,24 @@ def test_vm_management():
         vm_id = "test-xcpng-integration"
         
         print(f"\n🏭 Testing XCP-ng VM factory...")
+        
+        # Load XCP-ng configuration
+        from pylua_bioxen_vm_lib.xcp_ng_config import XCPngConfig
+        xcp_config_obj = XCPngConfig()
+        xcp_config = xcp_config_obj.get_xcp_connection_config()
+        
+        # Add required fields for XCPngVM
+        vm_config = xcp_config.copy()
+        vm_config.update({
+            "template_name": os.getenv("XCP_TEMPLATE", "test-template"),
+            "vm_username": os.getenv("VM_USERNAME", "root"),
+            "vm_name": "bioxen-lua"  # Your existing VM
+        })
+        
         xcpng_vm = vm_manager.create_vm(
             vm_id=vm_id,
-            vm_type="xcpng",
-            config={
-                "vm_name": "bioxen-lua",  # Your existing VM
-                "xcp_config": {
-                    "host": os.getenv("XCP_HOST"),
-                    "username": os.getenv("XCP_USERNAME"),
-                    "password": os.getenv("XCP_PASSWORD", "")
-                }
-            }
+            vm_type="xcpng", 
+            config=vm_config
         )
         
         print(f"✅ XCP-ng VM created through factory")
