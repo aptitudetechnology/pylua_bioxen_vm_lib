@@ -54,17 +54,32 @@ def test_cloud_vm_creation():
         templates = client.session.xenapi.VM.get_all_records()
         
         cloud_template = None
+        template_uuid = "93ee7338-8e41-334e-2115-0ddbfb6e18ba"  # From setup script
+        
+        # Look for our specific cloud template
         for vm_ref, vm_record in templates.items():
             if (vm_record.get('is_a_template', False) and 
-                'Cloud' in vm_record.get('name_label', '') and
-                'BioXen' in vm_record.get('name_label', '')):
+                vm_record.get('uuid') == template_uuid):
                 cloud_template = vm_ref
                 template_name = vm_record['name_label']
                 print(f"✅ Found cloud template: {template_name}")
+                print(f"   📋 Template UUID: {template_uuid}")
                 break
         
         if not cloud_template:
-            print("❌ Cloud template not found. Run setup_cloud_template.py first")
+            # Fallback: look for any cloud template with BioXen in name
+            for vm_ref, vm_record in templates.items():
+                if (vm_record.get('is_a_template', False) and 
+                    'BioXen' in vm_record.get('name_label', '')):
+                    cloud_template = vm_ref
+                    template_name = vm_record['name_label']
+                    template_uuid = vm_record.get('uuid')
+                    print(f"✅ Found cloud template: {template_name}")
+                    print(f"   📋 Template UUID: {template_uuid}")
+                    break
+        
+        if not cloud_template:
+            print("❌ Cloud template not found. Run setup_simple_cloud_template.py first")
             return False
         
         # Create cloud-init configuration
