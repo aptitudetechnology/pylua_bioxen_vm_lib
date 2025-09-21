@@ -64,18 +64,17 @@ def list_templates():
     try:
         # Get all templates
         print("\n🔍 Fetching template list...")
-        templates = client.session.VM.get_all_records()
+        templates = client.list_templates()
         
         # Filter and sort templates
         template_list = []
-        for vm_ref, vm_record in templates.items():
-            if vm_record.get('is_a_template', False):
-                template_list.append({
-                    'uuid': vm_record.get('uuid', ''),
-                    'name': vm_record.get('name_label', ''),
-                    'description': vm_record.get('name_description', ''),
-                    'ref': vm_ref
-                })
+        for template in templates:
+            template_list.append({
+                'uuid': template.get('uuid', ''),
+                'name': template.get('name-label', ''),
+                'description': template.get('name-description', ''),
+                'ref': template.get('ref', '')
+            })
         
         # Sort by name
         template_list.sort(key=lambda x: x['name'].lower())
