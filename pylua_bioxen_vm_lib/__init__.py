@@ -4,10 +4,34 @@ This library provides process-isolated Lua VMs managed from Python with built-in
 networking capabilities using LuaSocket and full interactive terminal support.
 Perfect for distributed computing, microservices, game servers, and sandboxed scripting.
 """
-from pylua_bioxen_vm_lib.lua_process import LuaProcess
-from pylua_bioxen_vm_lib.vm_manager import VMManager, VMCluster
-from pylua_bioxen_vm_lib.interactive_session import InteractiveSession, SessionManager
-from pylua_bioxen_vm_lib.networking import NetworkedLuaVM, LuaScriptTemplate, validate_port, validate_host
+try:
+    from pylua_bioxen_vm_lib.lua_process import LuaProcess
+except ImportError:
+    # LuaProcess may not be available during Phase 1 testing
+    LuaProcess = None
+
+try:
+    from pylua_bioxen_vm_lib.vm_manager import VMManager, VMCluster
+except ImportError:
+    # VMManager may not be available during Phase 1 testing
+    VMManager = None
+    VMCluster = None
+
+try:
+    from pylua_bioxen_vm_lib.interactive_session import InteractiveSession, SessionManager
+except ImportError:
+    # Interactive components may not be available during Phase 1 testing
+    InteractiveSession = None
+    SessionManager = None
+
+try:
+    from pylua_bioxen_vm_lib.networking import NetworkedLuaVM, LuaScriptTemplate, validate_port, validate_host
+except ImportError:
+    # Networking components may not be available during Phase 1 testing
+    NetworkedLuaVM = None
+    LuaScriptTemplate = None
+    validate_port = None
+    validate_host = None
 # XCPngVM imported dynamically in create_vm() to avoid circular imports
 from pylua_bioxen_vm_lib.exceptions import (
     LuaVMError,

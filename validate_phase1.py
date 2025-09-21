@@ -27,20 +27,27 @@ def test_phase1_deliverables():
     try:
         # Test individual imports to identify specific issues
         print("   Testing XAPI client import...")
-        from pylua_bioxen_vm_lib.xapi_client import XAPIClient
+        import importlib
+        xapi_module = importlib.import_module('pylua_bioxen_vm_lib.xapi_client')
+        XAPIClient = getattr(xapi_module, 'XAPIClient')
         print("   ✅ XAPI client imported successfully")
         
         print("   Testing XCP-ng config import...")
-        from pylua_bioxen_vm_lib.xcp_ng_config import XCPngConfig, VMConfigTemplate
+        config_module = importlib.import_module('pylua_bioxen_vm_lib.xcp_ng_config')
+        XCPngConfig = getattr(config_module, 'XCPngConfig')
+        VMConfigTemplate = getattr(config_module, 'VMConfigTemplate')
         print("   ✅ XCP-ng config imported successfully")
         
         print("   Testing XCP-ng integration import...")
-        from pylua_bioxen_vm_lib.xcp_ng_integration import XCPngVM
+        integration_module = importlib.import_module('pylua_bioxen_vm_lib.xcp_ng_integration')
+        XCPngVM = getattr(integration_module, 'XCPngVM')
         print("   ✅ XCP-ng integration imported successfully")
         
         print("   ✅ All XCP-ng integration modules imported successfully")
-    except ImportError as e:
+    except Exception as e:
         print(f"   ❌ Module import failed: {e}")
+        import traceback
+        traceback.print_exc()
         return False
     
     # Test 2: VM Manager Extension with Factory Pattern
