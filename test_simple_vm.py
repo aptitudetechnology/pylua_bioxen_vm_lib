@@ -13,6 +13,25 @@ from pathlib import Path
 project_dir = Path(__file__).parent
 sys.path.insert(0, str(project_dir))
 
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=project_dir / '.env')
+    print("✅ Loaded .env file")
+except ImportError:
+    print("⚠️  python-dotenv not installed. Loading .env manually...")
+    # Manual .env loading
+    env_file = project_dir / '.env'
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                if '=' in line and not line.startswith('#'):
+                    key, value = line.strip().split('=', 1)
+                    os.environ[key] = value
+        print("✅ Manually loaded .env file")
+    else:
+        print("❌ .env file not found")
+
 def test_simple_vm_creation():
     """Test basic VM creation without cloud-init"""
     
@@ -26,6 +45,8 @@ def test_simple_vm_creation():
     
     if not xcp_password:
         print("❌ Missing XCP_PASSWORD in environment")
+        print("💡 Create .env file with XCP_PASSWORD=your-password")
+        print("💡 Or run: export XCP_PASSWORD=your-password")
         return False
     
     print(f"🔗 Connecting to XCP-ng: {xcp_host}")
