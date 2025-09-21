@@ -51,29 +51,27 @@ def test_cloud_vm_creation():
     try:
         # Find cloud template
         print("\n📋 Looking for cloud template...")
-        templates = client.session.xenapi.VM.get_all_records()
+        templates = client.list_templates()
         
         cloud_template = None
         template_uuid = "93ee7338-8e41-334e-2115-0ddbfb6e18ba"  # From setup script
         
         # Look for our specific cloud template
-        for vm_ref, vm_record in templates.items():
-            if (vm_record.get('is_a_template', False) and 
-                vm_record.get('uuid') == template_uuid):
-                cloud_template = vm_ref
-                template_name = vm_record['name_label']
+        for template in templates:
+            if template.get('uuid') == template_uuid:
+                cloud_template = template
+                template_name = template['name-label']
                 print(f"✅ Found cloud template: {template_name}")
                 print(f"   📋 Template UUID: {template_uuid}")
                 break
         
         if not cloud_template:
             # Fallback: look for any cloud template with BioXen in name
-            for vm_ref, vm_record in templates.items():
-                if (vm_record.get('is_a_template', False) and 
-                    'BioXen' in vm_record.get('name_label', '')):
-                    cloud_template = vm_ref
-                    template_name = vm_record['name_label']
-                    template_uuid = vm_record.get('uuid')
+            for template in templates:
+                if 'BioXen' in template.get('name-label', ''):
+                    cloud_template = template
+                    template_name = template['name-label']
+                    template_uuid = template.get('uuid')
                     print(f"✅ Found cloud template: {template_name}")
                     print(f"   📋 Template UUID: {template_uuid}")
                     break
@@ -128,95 +126,106 @@ def test_cloud_vm_creation():
         vm_name = f"bioxen-cloud-vm-{int(time.time())}"
         print(f"\n🚀 Creating VM: {vm_name}")
         
-        # Clone from template
-        new_vm_ref = client.session.xenapi.VM.clone(cloud_template, vm_name)
-        
-        # Set as not a template
-        client.session.xenapi.VM.set_is_a_template(new_vm_ref, False)
-        
-        # Configure cloud-init user data
-        print("   📝 Configuring cloud-init...")
-        client.session.xenapi.VM.set_platform(new_vm_ref, {'user-data': user_data})
-        
-        # Get VM UUID
-        vm_uuid = client.session.xenapi.VM.get_uuid(new_vm_ref)
-        print(f"   📋 VM UUID: {vm_uuid}")
+        # Create VM using cloud template with cloud-init
+        try:
+            vm_uuid = client.create_cloud_vm_from_template(
+                template_uuid, 
+                vm_name, 
+                user_data
+            )
+            print(f"   � VM UUID: {vm_uuid}")
+        except Exception as e:
+            print(f"   ❌ VM creation failed: {e}")
+            return False
         
         # Start VM
         print("   🔄 Starting VM...")
-        client.session.xenapi.VM.start(new_vm_ref, False, True)
+        try:
+            if client.start_vm(vm_uuid):
+                print("✅ VM started successfully")
+            else:
+                print("❌ Failed to start VM")
+                return False
+        except Exception as e:
+            print(f"   ❌ VM start failed: {e}")
+            return False
         
         print("✅ VM started successfully")
         
         # Wait and check status
         print("\n⏳ Waiting for VM to boot and configure...")
+        vm_ip = None
+        
         for i in range(30):
             time.sleep(10)
             
-            # Check VM state
-            vm_record = client.session.xenapi.VM.get_record(new_vm_ref)
-            power_state = vm_record['power_state']
+            print(f"   ⏱️  {(i+1)*10}s - Checking VM status...")
             
-            print(f"   ⏱️  {(i+1)*10}s - Power state: {power_state}")
-            
-            # Try to get guest metrics
-            guest_metrics_ref = vm_record.get('guest_metrics')
-            if guest_metrics_ref and guest_metrics_ref != 'OpaqueRef:NULL':
-                try:
-                    guest_metrics = client.session.xenapi.VM_guest_metrics.get_record(guest_metrics_ref)
-                    networks = guest_metrics.get('networks', {})
+            # Try to get VM information
+            try:
+                # Get VM list to find our VM
+                vms = client.list_vms()
+                our_vm = None
+                
+                for vm in vms:
+                    if vm.get('uuid') == vm_uuid:
+                        our_vm = vm
+                        break
+                
+                if our_vm:
+                    power_state = our_vm.get('power-state', 'unknown')
+                    print(f"      Power state: {power_state}")
                     
+                    # Look for network info (this might not be available immediately)
+                    networks = our_vm.get('networks', {})
                     if networks:
                         print("   🌐 Network information:")
-                        for interface, ip in networks.items():
-                            print(f"      {interface}: {ip}")
-                        
-                        # Found IP, try SSH test
-                        vm_ip = None
-                        for interface, ip in networks.items():
-                            if ip and not ip.startswith('127.') and ':' not in ip:
-                                vm_ip = ip
+                        for key, value in networks.items():
+                            print(f"      {key}: {value}")
+                            if value and not value.startswith('127.') and ':' not in value:
+                                vm_ip = value
                                 break
+                    
+                    if vm_ip:
+                        print(f"\n🔍 Testing SSH connectivity to {vm_ip}...")
                         
-                        if vm_ip:
-                            print(f"\n🔍 Testing SSH connectivity to {vm_ip}...")
+                        # Simple SSH test
+                        import subprocess
+                        result = subprocess.run([
+                            'ssh', '-o', 'ConnectTimeout=5', 
+                            '-o', 'StrictHostKeyChecking=no',
+                            f'bioxen@{vm_ip}', 'echo "SSH test successful"'
+                        ], capture_output=True, text=True, timeout=10)
+                        
+                        if result.returncode == 0:
+                            print("✅ SSH connection successful!")
                             
-                            # Simple SSH test
-                            import subprocess
-                            result = subprocess.run([
-                                'ssh', '-o', 'ConnectTimeout=5', 
-                                '-o', 'StrictHostKeyChecking=no',
-                                f'bioxen@{vm_ip}', 'echo "SSH test successful"'
+                            # Test Lua installation
+                            lua_result = subprocess.run([
+                                'ssh', '-o', 'ConnectTimeout=5',
+                                '-o', 'StrictHostKeyChecking=no', 
+                                f'bioxen@{vm_ip}', 'lua -v'
                             ], capture_output=True, text=True, timeout=10)
                             
-                            if result.returncode == 0:
-                                print("✅ SSH connection successful!")
-                                
-                                # Test Lua installation
-                                lua_result = subprocess.run([
-                                    'ssh', '-o', 'ConnectTimeout=5',
-                                    '-o', 'StrictHostKeyChecking=no', 
-                                    f'bioxen@{vm_ip}', 'lua -v'
-                                ], capture_output=True, text=True, timeout=10)
-                                
-                                if lua_result.returncode == 0:
-                                    print(f"✅ Lua available: {lua_result.stdout.strip()}")
-                                else:
-                                    print("⚠️  Lua not yet available (still configuring)")
-                                
-                                break
+                            if lua_result.returncode == 0:
+                                print(f"✅ Lua available: {lua_result.stdout.strip()}")
                             else:
-                                print(f"   🔄 SSH not ready yet: {result.stderr.strip()}")
-                    
-                except Exception as e:
-                    print(f"   ⏳ Guest metrics not ready: {e}")
+                                print("⚠️  Lua not yet available (still configuring)")
+                            
+                            break
+                        else:
+                            print(f"   🔄 SSH not ready yet")
+                
+            except Exception as e:
+                print(f"   ⏳ VM still booting: {e}")
+                continue
         
         # Final status
         print(f"\n📊 CLOUD VM DEPLOYMENT SUMMARY")
         print("=" * 40)
         print(f"VM Name: {vm_name}")
         print(f"VM UUID: {vm_uuid}")
-        print(f"Template: Cloud image with cloud-init")
+        print(f"Template: Cloud template with cloud-init")
         print(f"Status: {'✅ Fully automated' if vm_ip else '🔄 Still configuring'}")
         
         if vm_ip:
