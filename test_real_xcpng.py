@@ -42,11 +42,16 @@ def test_xcpng_connection():
         print(f"\n🔍 Looking for VM: {vm_name}")
         
         # Create XCP-ng VM instance
+        vm_config = xcp_config.copy()
+        vm_config.update({
+            "template_name": os.getenv("XCP_TEMPLATE", "test-template"),
+            "vm_username": os.getenv("VM_USERNAME", "root"),
+            "vm_name": vm_name
+        })
+        
         xcpng_vm = XCPngVM(
             vm_id=f"test-{vm_name}",
-            xcp_config=xcp_config,
-            vm_name=vm_name,
-            debug_mode=True
+            config=vm_config
         )
         
         print("✅ XCPngVM instance created")
@@ -156,8 +161,8 @@ def test_vm_management():
         print(f"   VM IDs: {list(vm_manager.vms.keys())}")
         
         # Cleanup
-        vm_manager.cleanup()
-        print(f"✅ VM manager cleanup completed")
+        vm_manager.shutdown_all()
+        print(f"✅ VM manager shutdown completed")
         
         return True
         
