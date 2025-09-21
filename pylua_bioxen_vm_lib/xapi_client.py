@@ -287,6 +287,54 @@ class XAPIClient:
         except Exception as e:
             raise XCPngConnectionError(f"Failed to create VM from template: {e}")
     
+    def create_cloud_vm_from_template(self, template_uuid: str, vm_name: str, 
+                                     cloud_init_config: str = None) -> str:
+        """Create a new VM from a cloud image template with cloud-init configuration
+        
+        Args:
+            template_uuid: UUID of the cloud template to use
+            vm_name: Name for the new VM
+            cloud_init_config: Base64-encoded cloud-init YAML configuration
+            
+        Returns:
+            UUID of the created VM
+        """
+        if not self.session_ref:
+            raise XCPngConnectionError("Not authenticated")
+        
+        try:
+            # Create VM from template
+            vm_uuid = self.create_vm_from_template(template_uuid, vm_name)
+            
+            # Configure cloud-init if provided
+            if cloud_init_config:
+                # Get VM reference by UUID
+                vm_ref_result = self.server.VM.get_by_uuid(self.session_ref, vm_uuid)
+                if vm_ref_result['Status'] != 'Success':
+                    raise XCPngConnectionError(f"VM not found: {vm_uuid}")
+                
+                vm_ref = vm_ref_result['Value']
+                
+                # Set cloud-init user data in platform parameters
+                platform_result = self.server.VM.get_platform(self.session_ref, vm_ref)
+                if platform_result['Status'] == 'Success':
+                    platform = platform_result['Value']
+                else:
+                    platform = {}
+                
+                # Add cloud-init configuration
+                platform['user-data'] = cloud_init_config
+                
+                # Update platform
+                set_result = self.server.VM.set_platform(self.session_ref, vm_ref, platform)
+                if set_result['Status'] != 'Success':
+                    raise XCPngConnectionError("Failed to set cloud-init configuration")
+            
+            return vm_uuid
+            
+        except Exception as e:
+            raise XCPngConnectionError(f"Failed to create cloud VM from template: {e}")
+    
     def delete_vm(self, vm_uuid: str) -> bool:
         """Delete a VM and its associated VDIs
         

@@ -63,6 +63,10 @@ class XCPngVM:
         
         # Package curator for SSH-based package management
         self.curator = None
+        
+        # Cloud-init support
+        self.is_cloud_vm = self.config.get('use_cloud_init', False)
+        self.cloud_init_config = self.config.get('cloud_init_config')
     
     def start(self):
         """Start the XCP-ng VM and establish SSH session
@@ -94,10 +98,19 @@ class XCPngVM:
                 raise VMManagerError(f"Template '{template_name}' not found")
             
             # Create VM from template using UUID
-            self.vm_uuid = self.xapi_client.create_vm_from_template(
-                template_uuid=template_uuid,
-                vm_name=vm_name
-            )
+            if self.is_cloud_vm and self.cloud_init_config:
+                # Create cloud VM with cloud-init configuration
+                self.vm_uuid = self.xapi_client.create_cloud_vm_from_template(
+                    template_uuid=template_uuid,
+                    vm_name=vm_name,
+                    cloud_init_config=self.cloud_init_config
+                )
+            else:
+                # Create standard VM
+                self.vm_uuid = self.xapi_client.create_vm_from_template(
+                    template_uuid=template_uuid,
+                    vm_name=vm_name
+                )
             
             # Start the VM
             if not self.xapi_client.start_vm(self.vm_uuid):
