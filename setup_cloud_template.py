@@ -53,57 +53,68 @@ def setup_cloud_template():
         print(f"\n📦 Importing cloud image to XCP-ng...")
         print(f"   Template name: {template_name}")
         
-        # Import to XCP-ng
-        import_cmd = [
-            "xe", "vm-import", 
-            f"filename={cloud_image_file}",
-            f"vm-name={template_name}"
-        ]
+        # Import to XCP-ng via XAPI
+        print("   🔗 Connecting to XCP-ng via XAPI...")
         
-        print(f"   Running: {' '.join(import_cmd)}")
-        result = subprocess.run(import_cmd, capture_output=True, text=True)
+        # Get XCP-ng connection details
+        xcp_host = os.getenv('XCP_HOST')
+        xcp_username = os.getenv('XCP_USERNAME') 
+        xcp_password = os.getenv('XCP_PASSWORD')
         
-        if result.returncode == 0:
-            print("   ✅ Import completed successfully")
+        if not all([xcp_host, xcp_username, xcp_password]):
+            print("   ❌ Missing XCP-ng credentials in environment")
+            print("   💡 Set XCP_HOST, XCP_USERNAME, XCP_PASSWORD in .env file")
+            return False
+        
+        # Import XAPI client
+        try:
+            sys.path.append(str(Path(__file__).parent))
+            from pylua_bioxen_vm_lib.xapi_client import XAPIClient
             
-            # Get the UUID of the imported VM
-            vm_uuid = result.stdout.strip()
-            print(f"   📋 VM UUID: {vm_uuid}")
+            client = XAPIClient(xcp_host, xcp_username, xcp_password)
+            client.authenticate()
+            print("   ✅ Connected to XCP-ng")
             
-            # Configure as template
-            print("   🔧 Configuring as template...")
+        except Exception as e:
+            print(f"   ❌ XCP-ng connection failed: {e}")
+            return False
+        
+        try:
+            # Upload and import the cloud image
+            print("   📤 Uploading cloud image to XCP-ng...")
             
-            # Set as template
-            subprocess.run([
-                "xe", "vm-set-is-a-template", 
-                f"uuid={vm_uuid}", 
-                "is-a-template=true"
-            ])
+            # For now, we'll provide instructions for manual upload
+            # In a production setup, you'd use the XAPI HTTP import
+            print("   📋 MANUAL UPLOAD REQUIRED:")
+            print(f"   1. Copy {cloud_image_file} to your XCP-ng server:")
+            print(f"      scp {cloud_image_file} root@{xcp_host}:/tmp/")
+            print(f"   2. On XCP-ng server, run:")
+            print(f"      xe vm-import filename=/tmp/{cloud_image_file} new-name-label='{template_name}'")
+            print(f"   3. Find the new template UUID:")
+            print(f"      xe template-list name-label='{template_name}'")
             
-            # Set description
-            subprocess.run([
-                "xe", "template-param-set", 
-                f"uuid={vm_uuid}", 
-                "name-description=Debian 12 cloud image with cloud-init support"
-            ])
+            # For demonstration, let's check if template already exists
+            print(f"\n   � Checking for existing cloud template...")
+            templates = client.list_templates()
             
-            print("   ✅ Template configuration completed")
+            existing_template = None
+            for template in templates:
+                if template_name in template.get('name-label', ''):
+                    existing_template = template
+                    break
             
-            # Show template info
-            print(f"\n📋 Template Information:")
-            result = subprocess.run([
-                "xe", "template-param-list", f"uuid={vm_uuid}"
-            ], capture_output=True, text=True)
+            if existing_template:
+                vm_uuid = existing_template['uuid']
+                print(f"   ✅ Found existing template: {template_name}")
+                print(f"   📋 Template UUID: {vm_uuid}")
+                return vm_uuid
+            else:
+                print(f"   ⚠️  Template not found. Please upload manually as shown above.")
+                print(f"   💡 After manual upload, run this script again to verify.")
+                return None
             
-            if result.returncode == 0:
-                for line in result.stdout.split('\n'):
-                    if any(param in line for param in ['name-label', 'uuid', 'name-description']):
-                        print(f"   {line.strip()}")
-            
-            return vm_uuid
-            
-        else:
-            print(f"   ❌ Import failed: {result.stderr}")
+        except Exception as e:
+            print(f"   ❌ Template setup failed: {e}")
             return False
     
     except Exception as e:
