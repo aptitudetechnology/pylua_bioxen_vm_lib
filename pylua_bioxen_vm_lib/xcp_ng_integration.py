@@ -81,10 +81,22 @@ class XCPngVM:
             template_name = self.config['template_name']
             vm_config = self.config.get('vm_config', {})
             
+            # Find template UUID by name
+            templates = self.xapi_client.list_templates()
+            template_uuid = None
+            
+            for template in templates:
+                if template.get('name-label') == template_name:
+                    template_uuid = template.get('uuid')
+                    break
+            
+            if not template_uuid:
+                raise VMManagerError(f"Template '{template_name}' not found")
+            
+            # Create VM from template using UUID
             self.vm_uuid = self.xapi_client.create_vm_from_template(
-                vm_name=vm_name,
-                template_name=template_name,
-                config=vm_config
+                template_uuid=template_uuid,
+                vm_name=vm_name
             )
             
             # Start the VM
