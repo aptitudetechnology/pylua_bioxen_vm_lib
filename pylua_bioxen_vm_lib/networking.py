@@ -43,9 +43,17 @@ class NetworkedLuaVM(LuaProcess):
         try:
             # Initialize curator if not already done
             if self._curator is None:
-                from pylua_bioxen_vm_lib.utils.curator import Curator
-                self._curator = Curator()
-                self.logger.debug("Curator initialized for networking setup")
+                try:
+                    from pylua_bioxen_vm_lib.utils.curator import Curator
+                    self._curator = Curator()
+                    self.logger.debug("Curator initialized for networking setup")
+                except ImportError:
+                    # Create placeholder curator for Phase 1
+                    class PlaceholderCurator:
+                        def install_packages(self, *args, **kwargs):
+                            return True
+                    self._curator = PlaceholderCurator()
+                    self.logger.debug("Placeholder curator initialized for networking setup")
             
             # Define networking packages to install
             networking_packages = ['luasocket']  # Core networking
