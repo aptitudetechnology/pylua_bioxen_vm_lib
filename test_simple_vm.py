@@ -28,9 +28,12 @@ except ImportError:
                 line = line.strip()
                 if '=' in line and not line.startswith('#') and line:
                     key, value = line.split('=', 1)
-                    # Remove quotes if present
+                    # Clean up key and value
+                    key = key.strip()
                     value = value.strip().strip('"').strip("'")
-                    os.environ[key] = value
+                    if value:  # Only set non-empty values
+                        os.environ[key] = value
+                        print(f"   📝 Set {key}={'***' if 'PASSWORD' in key else value}")
         print("✅ Manually loaded .env file")
     else:
         print("❌ .env file not found")
@@ -45,6 +48,10 @@ def test_simple_vm_creation():
     xcp_host = os.getenv('XCP_HOST', '192.168.1.198')
     xcp_username = os.getenv('XCP_USERNAME', 'root')
     xcp_password = os.getenv('XCP_PASSWORD')
+    
+    print(f"🔍 Debug - XCP_HOST: {xcp_host}")
+    print(f"🔍 Debug - XCP_USERNAME: {xcp_username}")
+    print(f"🔍 Debug - XCP_PASSWORD exists: {'Yes' if xcp_password else 'No'}")
     
     if not xcp_password:
         print("❌ Missing XCP_PASSWORD in environment")
