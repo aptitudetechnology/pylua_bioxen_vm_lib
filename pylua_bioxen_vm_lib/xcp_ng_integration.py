@@ -215,15 +215,31 @@ class XCPngVM:
             'vm_uuid': self.vm_uuid,
             'vm_ip': self.vm_ip,
             'session_active': self.session_active,
-            'vm_type': 'xcpng'
+            'vm_type': 'xcpng',
+            'name-label': 'Unknown',
+            'uuid': 'Unknown',
+            'power-state': 'Unknown',
+            'memory-actual': 'Unknown'
         }
         
         if self.vm_uuid:
             try:
                 xcp_info = self.xapi_client.get_vm_info(self.vm_uuid)
-                info['xcp_info'] = xcp_info
-            except:
-                pass
+                if xcp_info:
+                    # Update with actual XCP-ng information
+                    info.update(xcp_info)
+                    info['xcp_info'] = xcp_info
+            except Exception as e:
+                # If we can't get XCP info, try to find VM by name
+                try:
+                    vm_name = self.config.get('vm_name', self.vm_id)
+                    vm_list = self.xapi_client.list_vms()
+                    for vm in vm_list:
+                        if vm.get('name-label') == vm_name:
+                            info.update(vm)
+                            break
+                except:
+                    pass
         
         return info
     
@@ -337,6 +353,36 @@ class XCPngVM:
     def is_interactive_running(self) -> bool:
         """Check if interactive session is running (compatibility)"""
         return self.session_active
+    
+    def is_running(self) -> bool:
+        """Check if VM is running"""
+        try:
+            vm_info = self.get_vm_info()
+            return vm_info.get('power-state') == 'running'
+        except Exception:
+            return False
+    
+    def cleanup(self):
+        """Public cleanup method (compatibility with VMManager)"""
+        return self._cleanup()
+    
+    def get_network_info(self) -> list:
+        """Get VM network information"""
+        try:
+            if self.vm_uuid and self.xapi_client:
+                return self.xapi_client.get_vm_networks(self.vm_uuid)
+            return []
+        except Exception:
+            return []
+    
+    def get_vm_metrics(self) -> dict:
+        """Get VM performance metrics"""
+        try:
+            if self.vm_uuid and self.xapi_client:
+                return self.xapi_client.get_vm_metrics(self.vm_uuid)
+            return {}
+        except Exception:
+            return {}
     
     def setup_packages(self, profile: str = 'standard') -> dict:
         """Setup packages using curator-like interface (compatibility)"""
