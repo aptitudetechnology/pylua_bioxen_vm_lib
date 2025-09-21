@@ -300,13 +300,11 @@ def demonstrate_bioxen_integration():
     print("\n4. Health monitoring...")
     
     health = local_vm.check_environment_health()
-    if 'system_health' in health:
-        print(f"   ✅ VM '{health['vm_info']['name']}' health: {health['system_health']}")
-    else:
-        # Handle case where system_health key might not exist
-        overall_health = health.get('overall_health', 'unknown')
-        vm_name = health.get('vm_info', {}).get('name', 'unknown')
-        print(f"   ✅ VM '{vm_name}' health: {overall_health}")
+    # Handle case where system_health key might not exist
+    overall_health = health.get('overall_health', 'unknown')
+    vm_name = health.get('vm_info', {}).get('name', 'unknown')
+    print(f"   ✅ VM '{vm_name}' health: {overall_health}")
+    if overall_health == 'unknown':
         print(f"   📊 Health details: {list(health.keys())}")
     
     print("\n" + "=" * 60)
