@@ -25,10 +25,20 @@ def test_phase1_deliverables():
     # Test 1: Core Module Creation
     print("\n1. Testing Core Module Creation...")
     try:
-        from pylua_bioxen_vm_lib.xcp_ng_integration import XCPngVM
-        from pylua_bioxen_vm_lib.xcp_ng_config import XCPngConfig, VMConfigTemplate
+        # Test individual imports to identify specific issues
+        print("   Testing XAPI client import...")
         from pylua_bioxen_vm_lib.xapi_client import XAPIClient
-        print("   ✅ XCP-ng integration modules imported successfully")
+        print("   ✅ XAPI client imported successfully")
+        
+        print("   Testing XCP-ng config import...")
+        from pylua_bioxen_vm_lib.xcp_ng_config import XCPngConfig, VMConfigTemplate
+        print("   ✅ XCP-ng config imported successfully")
+        
+        print("   Testing XCP-ng integration import...")
+        from pylua_bioxen_vm_lib.xcp_ng_integration import XCPngVM
+        print("   ✅ XCP-ng integration imported successfully")
+        
+        print("   ✅ All XCP-ng integration modules imported successfully")
     except ImportError as e:
         print(f"   ❌ Module import failed: {e}")
         return False
