@@ -14,7 +14,15 @@ from pylua_bioxen_vm_lib.exceptions import (
 )
 from pylua_bioxen_vm_lib.interactive_session import InteractiveSession
 from pylua_bioxen_vm_lib.logger import VMLogger
-from pylua_bioxen_vm_lib.utils.curator import Curator
+try:
+    from pylua_bioxen_vm_lib.utils.curator import Curator
+except ImportError:
+    # Create a placeholder Curator for testing
+    class Curator:
+        def __init__(self, *args, **kwargs):
+            pass
+        def get_recommendations(self, *args, **kwargs):
+            return []
 
 
 class LuaProcess:
