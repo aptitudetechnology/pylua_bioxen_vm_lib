@@ -25,7 +25,8 @@ class CloudInitConfig:
                 'htop',
                 'vim',
                 'sudo',
-                'openssh-server'
+                'openssh-server',
+                'xe-guest-utilities'  # XCP-ng guest tools for proper VM integration
             ],
             'users': [],
             'chpasswd': {
@@ -36,7 +37,9 @@ class CloudInitConfig:
             'disable_root': False,
             'runcmd': [
                 'systemctl enable ssh',
-                'systemctl start ssh'
+                'systemctl start ssh',
+                'systemctl enable xe-linux-distribution',  # Enable XCP-ng guest tools
+                'systemctl start xe-linux-distribution'    # Start XCP-ng guest tools
             ],
             'final_message': 'BioXen VM is ready!'
         }
